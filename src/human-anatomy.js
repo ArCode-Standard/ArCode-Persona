@@ -7,7 +7,7 @@ import { solveHumanProportions } from './human-proportions.js';
 function loftY(parent,rings,material,segments=40){
  const positions=[],indices=[];
  for(const r of rings)for(let i=0;i<=segments;i++){const a=i/segments*Math.PI*2;positions.push(Math.cos(a)*r.rx,r.y,Math.sin(a)*r.rz)}
- const row=segments+1;for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*row+i,b=a+row;indices.push(a,b,a+1,b,b+1,a+1)}
+ const row=segments+1;for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*row+i,b=a+row;indices.push(a,a+1,b,b,a+1,b+1)}
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
  const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
 }
