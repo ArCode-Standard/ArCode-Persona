@@ -40,7 +40,7 @@ jobs:
           path: dist/
           retention-days: 14
       - name: Configure GitHub Pages
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -51,7 +51,7 @@ jobs:
           path: dist/
 
   deploy:
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/interactive-moroccan-avatar-studio')
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
