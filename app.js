@@ -183,9 +183,15 @@ async function importAvatarAsset(file){
 function disposeImportedAvatar(){
  if(!importedAvatar)return;
  importedRoot.remove(importedAvatar);
+ const disposedTextures=new Set();
  importedAvatar.traverse(node=>{
   node.geometry?.dispose();
-  if(node.material)for(const material of(Array.isArray(node.material)?node.material:[node.material]))material.dispose();
+  if(node.material)for(const material of(Array.isArray(node.material)?node.material:[node.material])){
+   for(const value of Object.values(material)){
+    if(value?.isTexture&&!disposedTextures.has(value)){value.dispose();disposedTextures.add(value)}
+   }
+   material.dispose();
+  }
   if(node.skeleton?.boneTexture)node.skeleton.boneTexture.dispose();
  });
  importedAvatar=null;
