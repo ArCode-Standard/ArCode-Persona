@@ -254,6 +254,7 @@ function applyMorphPreset(name){
  toast('تم تطبيق التعبير');
 }
 
+document.querySelectorAll('[data-morph-preset]').forEach(button=>button.addEventListener('click',()=>applyMorphPreset(button.dataset.morphPreset)));
 function clearAvatarAnimations(){
  if(importedMixer&&importedAvatar)importedMixer.stopAllAction();
  importedMixer=null;
