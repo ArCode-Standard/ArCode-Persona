@@ -13,7 +13,7 @@
 - [ ] Approve stylized visual direction and character proportions.
 - [ ] Create production base mesh and rig.
 - [x] Expose imported GLB facial morph targets through runtime sliders.
-- [ ] Implement facial expression presets and blendshape authoring tools.
+- [x] Add runtime facial expression presets for imported blendshape names.\n- [ ] Implement visual blendshape authoring tools and calibration.
 - [ ] Replace placeholder garments with researched modular Moroccan assets.
 - [x] Play and select animation clips embedded in imported GLB files.
 - [ ] Add a studio-wide animation state machine and gesture library.
