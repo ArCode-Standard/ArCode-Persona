@@ -1,4 +1,5 @@
-import * as THREE from 'https://esm.sh/three@0.170.0';
+import * as THREE from 'three';
+import { DEFAULT_AVATAR_CONFIG } from './src/avatar-config.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
@@ -18,7 +19,7 @@ const key=new THREE.DirectionalLight(0xffe6c4,3.2);key.position.set(-3,5,5);key.
 const rim=new THREE.DirectionalLight(0x9bc9b5,2.3);rim.position.set(3,3,-4);scene.add(rim);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(2.25,64),new THREE.MeshBasicMaterial({color:0x9cb79a,transparent:true,opacity:.08}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.43;scene.add(floor);
 const model=new THREE.Group();scene.add(model);
-const state={skin:'#b97850',hair:'#241b19',hairStyle:'short',cloth:'#176b60',outfit:'djellaba',headwear:'none',expression:'smile',eyes:'#38251e',accessory:'none'};
+const state={...DEFAULT_AVATAR_CONFIG};
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
