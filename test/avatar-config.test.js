@@ -29,6 +29,7 @@ test('rejects unsupported schema versions and unknown properties',()=>{
  assert.throws(()=>validateAvatarConfig({schemaVersion:99}),/schema version/);
  assert.throws(()=>validateAvatarConfig({admin:true}),/Unknown avatar property/);
  assert.throws(()=>validateAvatarConfig({face:{thirdEye:true}}),/Unknown design property/);
+ assert.throws(()=>validateAvatarConfig({face:null}),/Invalid face design section/);
 });
 
 test('validates numeric ranges and enumerated face/hair/clothing values',()=>{
