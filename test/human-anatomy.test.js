@@ -2,20 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { buildHumanAnatomy } from '../src/human-anatomy.js';
-
-test('human anatomy creates a full articulated body volume', () => {
-  const root = new THREE.Group();
-  buildHumanAnatomy(root, { shoulderWidth: 1, torsoLength: 1, bodyDepth: 1, waistWidth: 1, hipWidth: 1, armLength: 1, legLength: 1 }, new THREE.MeshStandardMaterial());
-  assert.ok(root.children.length >= 25);
-  assert.ok(root.children.every((part) => part.isMesh && part.geometry && part.material));
-  assert.ok(root.children.some((part) => part.position.y < -1.4));
-});
-
-test('shoulder proportion changes anatomy geometry', () => {
-  const make = (shoulderWidth) => {
-    const root = new THREE.Group();
-    buildHumanAnatomy(root, { shoulderWidth, torsoLength: 1, bodyDepth: 1, waistWidth: 1, hipWidth: 1, armLength: 1, legLength: 1 }, new THREE.MeshStandardMaterial());
-    return root.children[0].scale.x;
-  };
-  assert.ok(make(1.2) > make(0.8));
-});
+import { solveHumanProportions } from '../src/human-proportions.js';
+import { buildHumanRig } from '../src/human-rig.js';
+import { COLOR_PALETTES, applyColorPalette, createSkinMaterial } from '../src/color-system.js';
+const body={shoulderWidth:1,torsoLength:1,bodyDepth:1,waistWidth:1,hipWidth:1,armLength:1,legLength:1,neckLength:1,headScale:1};
+test('proportion solver produces stable anatomical landmarks',()=>{const p=solveHumanProportions({...body,legLength:1.1,shoulderWidth:1.2});assert.ok(p.landmarks.kneeY<p.landmarks.hipY);assert.ok(p.landmarks.ankleY<p.landmarks.kneeY);assert.ok(p.landmarks.shoulderHalf>.4)});
+test('procedural anatomy builds lofted torso and articulated limb meshes',()=>{const root=new THREE.Group();buildHumanAnatomy(root,body,new THREE.MeshStandardMaterial());assert.ok(root.children.length>=15);assert.ok(root.children.some(m=>m.geometry.index&&m.geometry.attributes.position.count>300));assert.ok(root.children.every(m=>m.isMesh&&m.geometry&&m.material))});
+test('humanoid rig exposes standard named bones and both sides',()=>{const rig=buildHumanRig(body);for(const name of ['Hips','Spine','Chest','UpperChest','Neck','Head','UpperArmL','ForearmR','HandL','UpperLegR','LowerLegL','FootR','ToeL'])assert.ok(rig.bones[name],name)});
+test('color palette application preserves independent skin tone',()=>{const state={skin:'#b97850',cloth:'#fff',hair:'#fff',eyes:'#fff',clothing:{trimColor:'#fff'}};applyColorPalette(state,'atlas');assert.equal(state.skin,'#b97850');assert.equal(state.cloth,COLOR_PALETTES.atlas.cloth);assert.ok(createSkinMaterial('#b97850').isMeshPhysicalMaterial)});
