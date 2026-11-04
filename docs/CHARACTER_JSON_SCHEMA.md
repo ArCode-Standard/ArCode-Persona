@@ -94,3 +94,12 @@ The procedural preview builds an underlying human volume in anatomical order:
 - Independent shoulder, torso, waist, hip, arm, and leg proportion inputs.
 
 The anatomy is generated beneath the wardrobe layer so clothing remains a separate visual system. It is an editable stylized blockout intended to establish complete human proportions and limb placement. It is not a production sculpt, anatomical reference, realistic hand/foot model, or substitute for a retopologized and weighted base mesh. The imported GLB pipeline remains the route to production-grade anatomy until a dedicated base character asset is authored.
+
+
+## Human anatomy and visual systems
+
+The current procedural preview uses a shared proportion solver to derive shoulder, elbow, wrist, pelvis, knee, ankle and foot landmarks. A lofted torso profile creates a smoother ribcage/waist/pelvis silhouette. A standardized humanoid bone hierarchy is generated alongside the anatomy to establish stable names for future animation and skin binding.
+
+The face blockout refines jaw and cheek transitions, ear interiors, and the nasal bridge/tip/alar masses. Moroccan-inspired color palettes change cloth, hair, eyes and trim while preserving the independently selected skin tone. Skin and fabric use dedicated physically based material settings.
+
+Important: the current rig hierarchy is not yet bound to a weighted SkinnedMesh. The procedural preview is not a production sculpt and does not claim realistic skin deformation.
