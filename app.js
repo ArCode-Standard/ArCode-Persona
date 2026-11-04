@@ -6,13 +6,25 @@ const scene=new THREE.Scene();
 scene.background=null;
 const camera=new THREE.PerspectiveCamera(34,1,.1,100);
 camera.position.set(0,1.45,7.6);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
+let renderer;
+try {
+ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+ renderer.shadowMap.enabled=true;
+ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.15;
+} catch(error) {
+ console.error('WebGL initialization failed:',error);
+ renderAvailable=false;
+ const fallback=document.createElement('div');
+ fallback.className='webgl-fallback';
+ fallback.textContent='المعاينة ثلاثية الأبعاد غير متاحة في هذا المتصفح أو على هذا الجهاز. يمكنك تعديل الإطلالة وتصديرها، أو تفعيل WebGL ثم إعادة تحميل الصفحة.';
+ fallback.setAttribute('role','status');
+ wrap.appendChild(fallback);
+ renderer={domElement:document.createElement('canvas'),shadowMap:{},setPixelRatio(){},setSize(){},render(){},dispose(){}};
+}
 wrap.appendChild(renderer.domElement);
 const hemi=new THREE.HemisphereLight(0xe3f4df,0x344238,2.2);scene.add(hemi);
 const key=new THREE.DirectionalLight(0xffe6c4,3.2);key.position.set(-3,5,5);key.castShadow=true;scene.add(key);
