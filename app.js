@@ -4,6 +4,7 @@ import { CHARACTER_CATALOG, getCharacterPreset, validateCharacterDocument, creat
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
 import { buildBoneRemap } from './src/garment-rig.js';
+import { buildHumanAnatomy } from './src/human-anatomy.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
