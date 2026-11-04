@@ -11,6 +11,7 @@
 ### Face
 - Blendshape targets for brows, eyelids, gaze, cheeks, jaw, lips, and phoneme families.
 - Neutral pose and expression calibration.
+- Runtime preview supports up to 24 discovered morph targets per imported model; production assets must document target names and normalized weight ranges.
 - Tests for clipping and deformation at expression extremes.
 
 ### Wardrobe
