@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from './src/avatar-config.js';
+import { CHARACTER_CATALOG, getCharacterPreset, validateCharacterDocument, createCharacterDocument } from './src/character-library.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
 import { buildBoneRemap } from './src/garment-rig.js';
@@ -139,7 +140,7 @@ animate();
 document.getElementById('loading').classList.add('hidden');
 function update(){build();persistLook()}
 function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(validateAvatarConfig(state)))}catch(error){console.warn('Unable to save persona locally:',error)}}
-function restoreLook(input){try{const config=validateAvatarConfig(input);Object.assign(state,config);syncControls();update();toast('تمت استعادة الإطلالة')}catch(error){toast('ملف الإطلالة غير صالح أو غير مدعوم');console.error(error)}}
+function restoreLook(input){try{const document=validateCharacterDocument(input);Object.assign(state,document.config);const selector=document.getElementById('characterPreset');if(selector)selector.value=document.profile?.id||'';syncControls();update();toast(document.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
 function syncControls(){
  const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
  for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
@@ -382,7 +383,9 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 function reset(){Object.assign(state,DEFAULT_AVATAR_CONFIG);syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
 document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);update();toast('تم ابتكار إطلالة جديدة')});
-document.getElementById('saveLook').addEventListener('click',()=>{const data=validateAvatarConfig(state);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+document.getElementById('saveLook').addEventListener('click',()=>{const selected=getCharacterPreset(document.getElementById('characterPreset')?.value);const data=createCharacterDocument(state,selected||{id:'custom',name:'شخصيتي المخصصة',description:'شخصية مخصصة أنشأها المستخدم.',tags:['custom']});const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+const characterPreset=document.getElementById('characterPreset');
+if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' — '+item.description;characterPreset.appendChild(option)}characterPreset.addEventListener('change',()=>{if(!characterPreset.value)return;try{const preset=getCharacterPreset(characterPreset.value);Object.assign(state,validateAvatarConfig(preset.config));syncControls();update();toast('تم تطبيق تصميم '+preset.name)}catch(error){console.error(error);toast('تعذر تطبيق تصميم الشخصية')}})}
 const importInput=document.getElementById('importLookFile');
 document.getElementById('importLook').addEventListener('click',()=>importInput.click());
 importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
