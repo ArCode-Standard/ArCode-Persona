@@ -58,7 +58,8 @@ npm run preview
 - Initial appearance and wardrobe controls.
 - Expression and accessory selectors.
 - Validated JSON export and import for a configured look.
-- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.\n- Local import of one skinned garment GLB, rebound to the imported avatar by exact skeleton bone names.
+- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.
+- Local import of one skinned garment GLB, rebound to the imported avatar by exact skeleton bone names.
 - Playback and selection of animation clips embedded in imported GLB avatars.
 - Runtime sliders for facial morph targets exposed by imported GLB models (up to 24 controls).
 - Automatic local browser persistence with no account or server storage.
