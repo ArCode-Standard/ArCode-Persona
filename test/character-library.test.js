@@ -5,7 +5,7 @@ import { CHARACTER_CATALOG, getCharacterPreset, validateCharacterDocument, creat
 test('JSON character catalog contains unique valid profiles', () => {
   const ids = CHARACTER_CATALOG.characters.map((item) => item.id);
   assert.equal(new Set(ids).size, ids.length);
-  for (const item of CHARACTER_CATALOG.characters) assert.ok(validateCharacterDocument({ format:'arcode-persona-character', formatVersion:1, ...item }).config);
+  for (const item of CHARACTER_CATALOG.characters) assert.ok(validateCharacterDocument({ format:'arcode-persona-character', formatVersion:2, ...item }).config);
 });
 
 test('loads a known character preset by id', () => {
@@ -21,6 +21,13 @@ test('exports and imports a versioned character document', () => {
   assert.equal(restored.config.outfit, 'djellaba');
   assert.equal(restored.config.schemaVersion, 2);
   assert.equal(restored.config.face.shape, 'oval');
+});
+
+test('keeps backwards compatibility with legacy character document v1', () => {
+  const preset = getCharacterPreset('atlas-scholar');
+  const legacy = validateCharacterDocument({ format:'arcode-persona-character', formatVersion:1, ...preset });
+  assert.equal(legacy.config.schemaVersion, 2);
+  assert.equal(legacy.profile.id, 'atlas-scholar');
 });
 
 test('keeps backwards compatibility with legacy look JSON', () => {
