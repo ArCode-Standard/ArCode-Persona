@@ -22,7 +22,7 @@
 ## Phase 1A — Production asset pipeline\n- [x] Add a Blender export helper with mandatory provenance metadata.\n- [x] Add a GLB profile validator for skinned avatars and garments.\n- [ ] Produce and license the base human mesh, rig, and facial shape keys.\n- [ ] Produce modular djellaba, caftan, and takchita assets against the pinned rig.\n- [ ] Complete garment deformation and clipping QA on the base animation set.\n\n## Phase 2 — Creator experience
 - [x] Import and restore saved looks.
 - [x] Import a local GLB avatar into the live preview.
-- [ ] Add modular garment attachment and rig compatibility checks.\n- [ ] Preset library and outfit slots.
+- [x] Add single-piece local garment import with bone-name rig rebinding.\n- [ ] Add multi-piece outfit composition, layering, and clipping QA.\n- [ ] Preset library and outfit slots.
 - [ ] Color/material controls with accessible names.
 - [ ] Undo/redo and reset scopes.
 - [ ] Visual snapshot and shareable export.
