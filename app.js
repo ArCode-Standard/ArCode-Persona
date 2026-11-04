@@ -54,11 +54,11 @@ let faceParts={};
 function curve(parent,points,material,r=.018){const path=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(path,24,r,8,false),material);parent.add(mesh);return mesh}
 function build(){
  while(model.children.length) {const o=model.children[0];model.remove(o);o.traverse(n=>{n.geometry?.dispose();if(n.material){for(const material of (Array.isArray(n.material)?n.material:[n.material])) material.dispose()}})}
- const skin=skinMat(),hair=mat(state.hair),cloth=mat(state.cloth,.58),gold=mat('#c7a45e',.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
+ const skin=skinMat(),hair=mat(state.hair),gold=mat(state.clothing.trimColor,.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
  const body=state.body,face=state.face,hairDesign=state.hairDetails,wardrobe=state.clothing;
  const fitScale={slim:.92,regular:1,loose:1.08,oversized:1.16}[wardrobe.fit];
  const clothMaterial=mat(state.cloth,.58),trim=mat(wardrobe.trimColor,.34,.62);
- const torso=new THREE.Group();model.add(torso);
+ const torso=new THREE.Group();model.add(torso);model.scale.set(1,body.height,1);
  torso.scale.set(body.shoulderWidth*fitScale,body.torsoLength,body.bodyDepth);
  const robeHeight=(state.outfit==='modern'?1.13:1.48)*wardrobe.robeLength;
  if(state.outfit==='modern'){
@@ -66,8 +66,8 @@ function build(){
   sphere(torso,0,.13,0,.48*fitScale,.34,.29,clothMaterial);
   cylinder(torso,.18,.2,.24*wardrobe.collarHeight,0,.28,0,skin);
  }else{
-  const waist=.42*(wardrobe.fit==='slim'?.92:wardrobe.fit==='oversized'?1.12:1);
-  cylinder(torso,waist,.62*fitScale,robeHeight,0,-.48,0,clothMaterial);
+  const waist=.42*body.waistWidth*(wardrobe.fit==='slim'?.92:wardrobe.fit==='oversized'?1.12:1);
+  cylinder(torso,waist,.62*body.hipWidth*fitScale,robeHeight,0,-.48,0,clothMaterial);
   sphere(torso,0,.16,0,.47*fitScale,.34,.31,clothMaterial);
   cylinder(torso,.17,.19,.22*wardrobe.collarHeight,0,.31,0,skin);
   curve(torso,[[0,.2,.315],[0,-.15,.38],[0,-.65,.53],[0,-1.15*wardrobe.robeLength,.55]],trim,.009+.012*wardrobe.embroidery);
@@ -80,7 +80,7 @@ function build(){
   if(state.outfit==='djellaba'){const hood=sphere(torso,0,.49,-.18,.36,.25,.22,clothMaterial);hood.visible=state.headwear==='hood'}
  }
  for(const side of [-1,1]){
-  const arm=sphere(torso,side*.58,-.35,0,.17*wardrobe.sleeveLength,.57*wardrobe.sleeveLength,.17,clothMaterial);arm.rotation.z=side*-.12;
+  const arm=sphere(torso,side*.58,-.35,0,.17*wardrobe.sleeveLength,.57*wardrobe.sleeveLength*body.armLength,.17,clothMaterial);arm.rotation.z=side*-.12;
   sphere(torso,side*.59,-.92*wardrobe.sleeveLength,.015,.14,.15,.14,skin);
   sphere(torso,side*.59,-1.12*wardrobe.sleeveLength,.015,.17,.17,.22,clothMaterial);
  }
@@ -89,7 +89,8 @@ function build(){
  const shapeFactor={oval:[1,1],round:[1.08,.94],square:[1.04,.98],heart:[1,.98],long:[.94,1.08]}[face.shape];
  const jawFactor={oval:1,round:1.08,square:1.14,heart:.86,long:.94}[face.shape];
  sphere(head,0,0,0,.58*face.width*shapeFactor[0],.72*face.height*shapeFactor[1],.49,skin,48);
- sphere(head,0,-.27, .055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,36);
+ sphere(head,0,-.27,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,36);
+ sphere(head,-.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);sphere(head,.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);
  // Ears: scale, projection and rotation are independent design parameters.
  for(const s of [-1,1]){const ear=sphere(head,s*(.57+.035*face.earProtrusion),-.02,0,.11*face.earSize,.17*face.earSize,.09*face.earProtrusion,skin);ear.rotation.z=s*face.earAngle*Math.PI/180}
  if(state.hairStyle!=='shaved'){
@@ -442,6 +443,71 @@ function reset(){Object.assign(state,validateAvatarConfig(DEFAULT_AVATAR_CONFIG)
 document.getElementById('resetTop').addEventListener('click',reset);
 document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.body.shoulderWidth=pick([.92,1,1.08]);state.face.shape=pick(['oval','round','square','heart','long']);state.face.noseWidth=pick([.9,1,1.1]);state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);update();toast('تم ابتكار إطلالة جديدة')});
 document.getElementById('saveLook').addEventListener('click',()=>{const selected=getCharacterPreset(document.getElementById('characterPreset')?.value);const data=createCharacterDocument(state,selected||{id:'custom',name:'شخصيتي المخصصة',description:'شخصية مخصصة أنشأها المستخدم.',tags:['custom']});const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+const DESIGN_CONTROL_DEFS={
+ body:[
+  ['height','طول الجسم',.8,1.2,.01],['shoulderWidth','عرض الكتفين',.7,1.35,.01],['torsoLength','طول الجذع',.8,1.2,.01],
+  ['bodyDepth','عمق الجسم',.75,1.3,.01],['waistWidth','عرض الخصر',.7,1.35,.01],['hipWidth','عرض الوركين',.7,1.4,.01],
+  ['armLength','طول الذراعين',.8,1.2,.01],['legLength','طول الساقين',.8,1.2,.01],['headScale','حجم الرأس',.8,1.2,.01],['neckLength','طول الرقبة',.7,1.3,.01]
+ ],
+ face:[
+  ['shape','شكل الوجه',['oval','round','square','heart','long']],['width','عرض الوجه',.75,1.25,.01],['height','ارتفاع الوجه',.8,1.2,.01],
+  ['cheekboneWidth','عرض عظام الخد',.75,1.3,.01],['jawWidth','عرض الفك',.7,1.3,.01],['chinWidth','عرض الذقن',.65,1.35,.01],
+  ['noseBridgeHeight','ارتفاع جسر الأنف',.65,1.35,.01],['noseLength','طول الأنف',.7,1.3,.01],['noseWidth','عرض الأنف',.65,1.35,.01],
+  ['noseTip','حجم طرف الأنف',.7,1.3,.01],['earSize','حجم الأذنين',.7,1.3,.01],['earProtrusion','بروز الأذنين',.5,1.5,.01],['earAngle','زاوية الأذنين',-25,25,1]
+ ],
+ hairDetails:[
+  ['volume','حجم الشعر',.5,1.6,.01],['density','كثافة الشعر',.5,1.5,.01],['fringe','الغرة',0,1,.01],
+  ['part','فرق الشعر',['center','left','right','none']],['curl','درجة التجعد',0,1,.01],['sideburn','السوالف',0,1,.01],['length','طول الشعر',.5,1.8,.01]
+ ],
+ clothing:[
+  ['fit','قَصّة الملابس',['slim','regular','loose','oversized']],['sleeveLength','طول الأكمام',.5,1.3,.01],
+  ['robeLength','طول الرداء',.7,1.3,.01],['collarHeight','ارتفاع الياقة',.5,1.5,.01],['embroidery','كثافة التطريز',0,1,.01],
+  ['trimColor','لون الزخرفة','color'],['belt','الحزام','boolean'],['layer','طبقات اللباس',['single','inner-outer','ceremonial']]
+ ]
+};
+const DESIGN_LABELS={oval:'بيضاوي',round:'مستدير',square:'مربع',heart:'قلبي',long:'طويل',center:'وسط',left:'يسار',right:'يمين',none:'بدون',slim:'ضيق',regular:'عادي',loose:'واسع',oversized:'فضفاض','inner-outer':'داخلي وخارجي',ceremonial:'احتفالي',single:'طبقة واحدة'};
+function setDesignValue(section,key,value){state[section][key]=value;update()}
+function buildDesignControls(){
+ for(const [section,definitions] of Object.entries(DESIGN_CONTROL_DEFS)){
+  const container=document.getElementById(section+'DesignControls');if(!container)continue;container.replaceChildren();
+  for(const [key,label,minOrOptions,max,step] of definitions){
+   const field=document.createElement('div');field.className='design-control';
+   const id='design-'+section+'-'+key;const caption=document.createElement('label');caption.htmlFor=id;caption.textContent=label;
+   let input;
+   if(Array.isArray(minOrOptions)){
+    input=document.createElement('select');for(const value of minOrOptions){const option=document.createElement('option');option.value=value;option.textContent=DESIGN_LABELS[value]||value;input.append(option)}
+   }else if(minOrOptions==='color'){
+    input=document.createElement('input');input.type='color';
+   }else if(minOrOptions==='boolean'){
+    input=document.createElement('input');input.type='checkbox';
+   }else{
+    input=document.createElement('input');input.type='range';input.min=String(minOrOptions);input.max=String(max);input.step=String(step);
+   }
+   input.id=id;
+   const output=document.createElement('output');output.textContent='';
+   const eventName=input.type==='range'?'input':'change';
+   input.addEventListener(eventName,()=>{
+    const value=input.type==='checkbox'?input.checked:input.type==='range'?Number(input.value):input.value;
+    state[section][key]=value;if(output)output.textContent=input.type==='range'?value.toFixed(2):'';
+    update();
+   });
+   field.append(caption,input,output);container.append(field);
+  }
+ }
+ syncDesignControls();
+}
+function syncDesignControls(){
+ for(const [section,definitions] of Object.entries(DESIGN_CONTROL_DEFS)){
+  for(const [key] of definitions){
+   const input=document.getElementById('design-'+section+'-'+key);if(!input)continue;
+   const value=state[section][key];
+   if(input.type==='checkbox')input.checked=value;else input.value=String(value);
+   const output=input.parentElement.querySelector('output');if(output)output.textContent=input.type==='range'?Number(value).toFixed(2):'';
+  }
+ }
+}
+buildDesignControls();
+
 const characterPreset=document.getElementById('characterPreset');
 if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' — '+item.description;characterPreset.appendChild(option)}characterPreset.addEventListener('change',()=>{if(!characterPreset.value)return;try{const preset=getCharacterPreset(characterPreset.value);Object.assign(state,validateAvatarConfig(preset.config));syncControls();syncDesignControls();update();toast('تم تطبيق تصميم '+preset.name)}catch(error){console.error(error);toast('تعذر تطبيق تصميم الشخصية')}})}
 const importInput=document.getElementById('importLookFile');
