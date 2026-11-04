@@ -64,7 +64,8 @@ function build(){
  const fitScale={slim:.92,regular:1,loose:1.08,oversized:1.16}[wardrobe.fit];
  const clothMaterial=createFabricMaterial(state.cloth),trim=createFabricMaterial(wardrobe.trimColor,true);
  const torso=new THREE.Group();model.add(torso);model.scale.set(1,body.height,1);
- torso.scale.set(body.shoulderWidth*fitScale,body.torsoLength,body.bodyDepth);
+ // Geometry generators consume normalized design values directly; avoid double-scaling the anatomy.
+ torso.scale.set(1,1,1);
  buildHumanAnatomy(torso, body, skin);
  const humanoidRig=buildHumanRig(body);torso.add(humanoidRig.root);model.userData.humanoidRig=humanoidRig;
  const robeHeight=(state.outfit==='modern'?1.13:1.48)*wardrobe.robeLength;
@@ -215,6 +216,7 @@ function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(valid
 function applyAvatarConfig(input){const config=validateAvatarConfig(input);Object.assign(state,config);for(const section of ['body','face','hairDetails','clothing'])state[section]={...config[section]};return config}
 function restoreLook(input){try{const characterDocument=validateCharacterDocument(input);applyAvatarConfig(characterDocument.config);syncDesignControls();const selector=globalThis.document.getElementById('characterPreset');if(selector)selector.value=characterDocument.profile?.id||'';syncControls();update();toast(characterDocument.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
 function syncControls(){
+ const palette=document.getElementById('colorPalette');if(palette)palette.value='custom';
  const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
  for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
  document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.classList.toggle('selected',b.dataset.value===state.outfit));
@@ -223,6 +225,8 @@ function syncControls(){
 function markCharacterCustom(){const selector=document.getElementById('characterPreset');if(selector)selector.value=''}
 function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
 bindSwatches('skinOptions','skin');bindSwatches('hairOptions','hair');bindSwatches('clothOptions','cloth');
+const paletteControl=document.getElementById('colorPalette');
+if(paletteControl)paletteControl.addEventListener('change',event=>{if(event.target.value==='custom')return;markCharacterCustom();applyColorPalette(state,event.target.value);syncControls();event.target.value=event.target.value;update()});
 [['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{markCharacterCustom();state[key]=e.target.value;update()}));
 document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#outfitOptions .choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.outfit=b.dataset.value;update()}));
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab,.tab-content').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')}));
