@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "characters": [
+    {
+      "id": "atlas-scholar",
+      "name": "باحث الأطلس",
+      "description": "مظهر يومي مغربي بجلابة خضراء",
+      "tags": [
+        "moroccan",
+        "male-style",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#b97850",
+        "hair": "#241b19",
+        "hairStyle": "short",
+        "cloth": "#176b60",
+        "outfit": "djellaba",
+        "headwear": "none",
+        "expression": "neutral",
+        "eyes": "#38251e",
+        "accessory": "none"
+      }
+    },
+    {
+      "id": "fes-craftsman",
+      "name": "صانع فاسي",
+      "description": "جلابة داكنة وطربوش تقليدي",
+      "tags": [
+        "fes",
+        "craft",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#8e573d",
+        "hair": "#241b19",
+        "hairStyle": "short",
+        "cloth": "#172b50",
+        "outfit": "djellaba",
+        "headwear": "fez",
+        "expression": "smile",
+        "eyes": "#38251e",
+        "accessory": "none"
+      }
+    },
+    {
+      "id": "royal-caftan",
+      "name": "أناقة القفطان",
+      "description": "قفطان عنابي بلمسات ذهبية",
+      "tags": [
+        "caftan",
+        "formal",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#c98d70",
+        "hair": "#241b19",
+        "hairStyle": "long",
+        "cloth": "#873f49",
+        "outfit": "caftan",
+        "headwear": "none",
+        "expression": "smile",
+        "eyes": "#38251e",
+        "accessory": "earring"
+      }
+    },
+    {
+      "id": "takchita-evening",
+      "name": "تكشيطة المناسبات",
+      "description": "تكشيطة عاجية بإطلالة احتفالية",
+      "tags": [
+        "takchita",
+        "formal"
+      ],
+      "config": {
+        "skin": "#e0a77d",
+        "hair": "#57352a",
+        "hairStyle": "long",
+        "cloth": "#e8dfce",
+        "outfit": "takchita",
+        "headwear": "none",
+        "expression": "smile",
+        "eyes": "#92704b",
+        "accessory": "earring"
+      }
+    },
+    {
+      "id": "modern-urban",
+      "name": "عصري حضري",
+      "description": "ملابس معاصرة بألوان هادئة",
+      "tags": [
+        "modern",
+        "urban"
+      ],
+      "config": {
+        "skin": "#b97850",
+        "hair": "#57352a",
+        "hairStyle": "curly",
+        "cloth": "#172b50",
+        "outfit": "modern",
+        "headwear": "none",
+        "expression": "neutral",
+        "eyes": "#55718c",
+        "accessory": "glasses"
+      }
+    },
+    {
+      "id": "souss-warmth",
+      "name": "دفء سوس",
+      "description": "ألوان ترابية مستوحاة من الجنوب",
+      "tags": [
+        "souss",
+        "regional-inspiration"
+      ],
+      "config": {
+        "skin": "#8e573d",
+        "hair": "#241b19",
+        "hairStyle": "curly",
+        "cloth": "#d1b16d",
+        "outfit": "djellaba",
+        "headwear": "hood",
+        "expression": "smile",
+        "eyes": "#92704b",
+        "accessory": "scarf"
+      }
+    }
+  ]
+}
