@@ -80,3 +80,14 @@ No Darija-LexReview integration is enabled. The current prototype does not requi
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+
+### Human anatomy, rig and color engine
+
+- `src/human-proportions.js`: shared proportion solver and anatomical landmarks for shoulder, elbow, wrist, pelvis, knee, ankle and foot placement.
+- `src/human-rig.js`: standardized humanoid bone hierarchy (hips, spine, chest, neck, head, clavicles, arms, hands, fingers, legs, feet and toes) for future animation and skin binding.
+- `src/human-anatomy.js`: lofted torso surface with smoother ribcage-to-waist-to-pelvis transitions, plus articulated limb blockout.
+- `src/color-system.js`: Moroccan-inspired palettes and physically based skin/fabric material presets.
+- The face preview now has more deliberate jaw, cheek, ear and nose sub-shapes; all remain stylized procedural geometry.
+
+The bone hierarchy is currently animation-ready metadata, not yet a weighted SkinnedMesh. The preview anatomy remains a blockout; realistic anatomical topology, fingers, muscle definition and deformation require a dedicated production base mesh and skin weights.
