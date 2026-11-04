@@ -140,7 +140,7 @@ animate();
 document.getElementById('loading').classList.add('hidden');
 function update(){build();persistLook()}
 function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(validateAvatarConfig(state)))}catch(error){console.warn('Unable to save persona locally:',error)}}
-function restoreLook(input){try{const document=validateCharacterDocument(input);Object.assign(state,document.config);const selector=document.getElementById('characterPreset');if(selector)selector.value=document.profile?.id||'';syncControls();update();toast(document.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
+function restoreLook(input){try{const characterDocument=validateCharacterDocument(input);Object.assign(state,characterDocument.config);const selector=globalThis.document.getElementById('characterPreset');if(selector)selector.value=characterDocument.profile?.id||'';syncControls();update();toast(characterDocument.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
 function syncControls(){
  const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
  for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
