@@ -513,5 +513,5 @@ if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option
 const importInput=document.getElementById('importLookFile');
 document.getElementById('importLook').addEventListener('click',()=>importInput.click());
 importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
-try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreLook(JSON.parse(saved))}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY)}
+try{const saved=localStorage.getItem(STORAGE_KEY)||localStorage.getItem('arcode-persona:look:v1');if(saved)restoreLook(JSON.parse(saved));localStorage.removeItem('arcode-persona:look:v1')}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY);localStorage.removeItem('arcode-persona:look:v1')}
 window.addEventListener('beforeunload',()=>{renderer.dispose();disposeImportedAvatar();scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.dispose()}})});
