@@ -46,6 +46,8 @@ let importedMixer=null;
 let importedActions=[];
 let activeAnimationIndex=-1;
 let morphBindings=new Map();
+const importedBoneBaseScales=new WeakMap();
+let importedBaseScale=1;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -155,7 +157,7 @@ function update(){build();applyImportedCharacterDesign();persistLook()}
 function applyImportedCharacterDesign(){
  if(!importedAvatar)return;
  const design=state;
- const normalizedScale=importedAvatar.userData.arcodeBaseScale||1;
+ const normalizedScale=importedBaseScale||1;
  importedAvatar.scale.set(normalizedScale,normalizedScale*design.body.height,normalizedScale);
  const targets={
   facewidth:design.face.width, headwidth:design.face.width,
@@ -184,7 +186,7 @@ function applyImportedCharacterDesign(){
   }
   if(node.isBone){
    const name=node.name.toLowerCase().replace(/[^a-z]/g,'');
-   const base=node.userData.arcodeBaseScale||(node.userData.arcodeBaseScale=node.scale.clone());
+   let base=importedBoneBaseScales.get(node);if(!base){base=node.scale.clone();importedBoneBaseScales.set(node,base)}
    let x=1,y=1;
    if(/shoulder|clavicle|upperarm/.test(name))x=design.body.shoulderWidth;
    if(/spine|chest|torso/.test(name))y=design.body.torsoLength;
@@ -354,7 +356,7 @@ async function importAvatarAsset(file){
  const normalizedRoot=new THREE.Group();
  normalizedRoot.add(root);
  normalizedRoot.scale.setScalar(scale);
- normalizedRoot.userData.arcodeBaseScale=scale;
+ importedBaseScale=scale;
  normalizedRoot.position.copy(center).multiplyScalar(-scale);
  disposeImportedAvatar();
  importedAvatar=normalizedRoot;
