@@ -14,7 +14,8 @@
 - [ ] Create production base mesh and rig.
 - [ ] Implement facial blendshape system.
 - [ ] Replace placeholder garments with researched modular Moroccan assets.
-- [ ] Add animation state machine and gesture library.
+- [x] Play and select animation clips embedded in imported GLB files.
+- [ ] Add a studio-wide animation state machine and gesture library.
 - [ ] Validate mobile performance and accessibility.
 
 ## Phase 2 — Creator experience
