@@ -224,7 +224,7 @@ function buildMorphControls(root){
  [...morphBindings.entries()].slice(0,24).forEach(([name,bindings])=>{
   const row=document.createElement('div');row.className='morph-control';
   const label=document.createElement('label');label.textContent=MORPH_LABELS[name]||name;label.htmlFor=`morph-${container.children.length}`;
-  const input=document.createElement('input');input.type='range';input.min='0';input.max='1';input.step='.01';input.id=label.htmlFor;
+  const input=document.createElement('input');input.type='range';input.min='0';input.max='1';input.step='.01';input.id=label.htmlFor;input.dataset.morphIndex=String(container.children.length);
   const initial=Number(bindings[0].mesh.morphTargetInfluences[bindings[0].index]||0);
   input.value=String(THREE.MathUtils.clamp(initial,0,1));
   const output=document.createElement('output');output.value=Number(input.value).toFixed(2);
@@ -237,6 +237,34 @@ function buildMorphControls(root){
  });
  document.getElementById('morphEditor').hidden=morphBindings.size===0;
 }
+
+const MORPH_PRESETS={
+ neutral:{},
+ smile:{mouthSmileLeft:.7,mouthSmileRight:.7,cheekSquintLeft:.25,cheekSquintRight:.25},
+ surprised:{jawOpen:.48,eyeWideLeft:.65,eyeWideRight:.65,browInnerUp:.7,browOuterUpLeft:.55,browOuterUpRight:.55},
+ sad:{mouthFrownLeft:.55,mouthFrownRight:.55,browInnerUp:.45,browDownLeft:.2,browDownRight:.2},
+ blink:{eyeBlinkLeft:1,eyeBlinkRight:1}
+};
+function applyMorphPreset(name){
+ const preset=MORPH_PRESETS[name];
+ if(!preset)return;
+ morphBindings.forEach((bindings,morphName)=>{
+  const value=THREE.MathUtils.clamp(Number(preset[morphName]||0),0,1);
+  bindings.forEach(({mesh,index})=>{mesh.morphTargetInfluences[index]=value});
+ });
+ document.querySelectorAll('#morphControls .morph-control').forEach(row=>{
+  const input=row.querySelector('input[type="range"]');
+  const output=row.querySelector('output');
+  if(!input)return;
+  const morphName=[...morphBindings.keys()][Number(input.dataset.morphIndex)];
+  const value=THREE.MathUtils.clamp(Number(preset[morphName]||0),0,1);
+  input.value=String(value);
+  if(output)output.value=value.toFixed(2);
+ });
+ toast('تم تطبيق التعبير');
+}
+document.querySelectorAll('[data-morph-preset]').forEach(button=>button.addEventListener('click',()=>applyMorphPreset(button.dataset.morphPreset)));
+
 function clearAvatarAnimations(){
  if(importedMixer&&importedAvatar)importedMixer.stopAllAction();
  importedMixer=null;
