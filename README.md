@@ -57,12 +57,13 @@ npm run preview
 - 360-degree pointer rotation, auto-rotation, and zoom.
 - Initial appearance and wardrobe controls.
 - Expression and accessory selectors.
-- Validated JSON export and import for a configured look.\n- Automatic local browser persistence with no account or server storage.\n- Restore saved looks after reloading the studio.
+- Validated JSON export and import for a configured look.
+- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.\n- Automatic local browser persistence with no account or server storage.\n- Restore saved looks after reloading the studio.
 - Responsive Arabic RTL interface.
 
 ## Important limitations
 
-The current preview uses procedural geometric shapes. Full character topology, facial blendshapes, skeletal animation, realistic cloth behavior, detailed garment meshes, import/restore, persistence, and browser E2E tests are not yet implemented. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
+The built-in preview still uses procedural geometric shapes. Users can import a self-contained GLB 2.0 avatar locally (maximum 32 MB); imported assets are not uploaded. Full character topology, facial blendshapes, playback of imported skeletal animations, realistic cloth behavior, detailed garment meshes, editing imported model materials from the UI, and browser E2E tests are not yet implemented. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
 
 ## Independence and privacy
 
