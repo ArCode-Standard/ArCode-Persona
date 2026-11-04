@@ -57,7 +57,7 @@ npm run preview
 - 360-degree pointer rotation, auto-rotation, and zoom.
 - Initial appearance and wardrobe controls.
 - Expression and accessory selectors.
-- JSON export for a configured look.
+- Validated JSON export and import for a configured look.\n- Automatic local browser persistence with no account or server storage.\n- Restore saved looks after reloading the studio.
 - Responsive Arabic RTL interface.
 
 ## Important limitations
