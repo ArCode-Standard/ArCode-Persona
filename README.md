@@ -58,7 +58,7 @@ npm run preview
 - Initial appearance and wardrobe controls.
 - Expression and accessory selectors.
 - Validated JSON export and import for a configured look.
-- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.
+- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.\n- Local import of one skinned garment GLB, rebound to the imported avatar by exact skeleton bone names.
 - Playback and selection of animation clips embedded in imported GLB avatars.
 - Runtime sliders for facial morph targets exposed by imported GLB models (up to 24 controls).
 - Automatic local browser persistence with no account or server storage.
@@ -67,7 +67,7 @@ npm run preview
 
 ## Important limitations
 
-The built-in preview still uses procedural geometric shapes. Users can import a self-contained GLB 2.0 avatar locally (maximum 32 MB); imported assets are not uploaded. Production human topology, finished rigged character assets, facial shape-key authoring, modular garment meshes and runtime attachment, realistic cloth behavior, editing imported model materials from the UI, and browser E2E tests are not yet implemented. The new Blender exporter and GLB validator provide production asset tooling, not the missing art assets. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
+The built-in preview still uses procedural geometric shapes. Users can import a self-contained GLB 2.0 avatar locally (maximum 32 MB); imported assets are not uploaded. Production human topology, finished rigged character assets, facial shape-key authoring, authored Moroccan garment meshes, multi-piece outfit composition, realistic cloth behavior, editing imported model materials from the UI, and browser E2E tests are not yet implemented. The current garment loader is a single-piece rig-binding foundation and requires a compatible garment asset. The new Blender exporter and GLB validator provide production asset tooling, not the missing art assets. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
 
 ## Independence and privacy
 
