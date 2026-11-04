@@ -2,7 +2,7 @@ name: ArCode Persona — GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/interactive-moroccan-avatar-studio]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -48,7 +48,7 @@ jobs:
           path: .
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/interactive-moroccan-avatar-studio')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
