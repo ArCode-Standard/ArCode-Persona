@@ -19,6 +19,8 @@ test('exports and imports a versioned character document', () => {
   const restored = validateCharacterDocument(JSON.parse(JSON.stringify(exported)));
   assert.equal(restored.profile.id, 'atlas-scholar');
   assert.equal(restored.config.outfit, 'djellaba');
+  assert.equal(restored.config.schemaVersion, 2);
+  assert.equal(restored.config.face.shape, 'oval');
 });
 
 test('keeps backwards compatibility with legacy look JSON', () => {
