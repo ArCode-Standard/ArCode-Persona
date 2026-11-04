@@ -2,3 +2,5 @@
 .webgl-fallback{position:absolute;z-index:5;inset:18% 10% auto;padding:18px;border:1px solid #657b68;border-radius:12px;background:#172722ee;color:#e2eadf;text-align:center;font-size:13px;line-height:2;box-shadow:0 12px 35px #0005}
 
 .control-button{white-space:nowrap}.preview-controls{gap:8px}.view-actions{align-items:center;flex-wrap:wrap}
+
+#avatarAnimation{max-width:145px;padding:8px 9px;font-size:10px}#toggleAvatarAnimation:disabled{opacity:.5;cursor:not-allowed}.view-actions{min-width:0}
