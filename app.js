@@ -63,6 +63,7 @@ function build(){
  const clothMaterial=mat(state.cloth,.58),trim=mat(wardrobe.trimColor,.34,.62);
  const torso=new THREE.Group();model.add(torso);model.scale.set(1,body.height,1);
  torso.scale.set(body.shoulderWidth*fitScale,body.torsoLength,body.bodyDepth);
+ buildHumanAnatomy(torso, body, skin);
  const robeHeight=(state.outfit==='modern'?1.13:1.48)*wardrobe.robeLength;
  if(state.outfit==='modern'){
   cylinder(torso,.49*fitScale,.63*fitScale,robeHeight,0,-.42,0,clothMaterial);
