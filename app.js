@@ -155,7 +155,7 @@ document.getElementById('removeAvatarAsset').addEventListener('click',removeAvat
 avatarFileInput.addEventListener('change',async()=>{
  const file=avatarFileInput.files?.[0];
  if(!file)return;
- try{await importAvatarAsset(file)}finally{avatarFileInput.value=''}
+ try{await importAvatarAsset(file)}catch(error){console.error('GLB import failed:',error);toast(error.message||'تعذر استيراد نموذج GLB')}finally{avatarFileInput.value=''}
 });
 async function importAvatarAsset(file){
  if(!/\.glb$/i.test(file.name))throw new Error('صيغة الملف غير مدعومة؛ استخدم GLB.');
@@ -171,7 +171,7 @@ async function importAvatarAsset(file){
  if(!Number.isFinite(size.y)||size.y<=0)throw new Error('أبعاد الشخصية غير صالحة.');
  const center=bounds.getCenter(new THREE.Vector3());
  const scale=THREE.MathUtils.clamp(2.8/size.y,.001,1000);
- root.position.sub(center);
+ root.position.copy(center).multiplyScalar(-scale);
  root.scale.multiplyScalar(scale);
  disposeImportedAvatar();
  importedAvatar=root;
