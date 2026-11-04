@@ -206,10 +206,11 @@ function syncControls(){
  document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.classList.toggle('selected',b.dataset.value===state.outfit));
  for(const id of ['hairStyle','expression','headwear','eyes','accessory'])document.getElementById(id).value=state[id];
 }
-function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
+function markCharacterCustom(){const selector=document.getElementById('characterPreset');if(selector)selector.value=''}
+function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
 bindSwatches('skinOptions','skin');bindSwatches('hairOptions','hair');bindSwatches('clothOptions','cloth');
-[['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{state[key]=e.target.value;update()}));
-document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#outfitOptions .choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.outfit=b.dataset.value;update()}));
+[['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{markCharacterCustom();state[key]=e.target.value;update()}));
+document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#outfitOptions .choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.outfit=b.dataset.value;update()}));
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab,.tab-content').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')}));
 document.getElementById('rotate').addEventListener('click',e=>{auto=!auto;e.currentTarget.classList.toggle('active',auto);e.currentTarget.innerHTML=auto?'<span>⟳</span> دوران تلقائي':'<span>Ⅱ</span> إيقاف الدوران'});
 document.getElementById('frontView').addEventListener('click',()=>{rotation=0;auto=false;document.getElementById('rotate').classList.remove('active')});
@@ -441,9 +442,9 @@ function removeAvatarAsset(){
 }
 
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
-function reset(){applyAvatarConfig(DEFAULT_AVATAR_CONFIG);syncControls();syncDesignControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
+function reset(){applyAvatarConfig(DEFAULT_AVATAR_CONFIG);markCharacterCustom();syncControls();syncDesignControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
-document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.body.shoulderWidth=pick([.92,1,1.08]);state.face.shape=pick(['oval','round','square','heart','long']);state.face.noseWidth=pick([.9,1,1.1]);state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);syncDesignControls();update();toast('تم ابتكار إطلالة جديدة')});
+document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.body.shoulderWidth=pick([.92,1,1.08]);state.face.shape=pick(['oval','round','square','heart','long']);state.face.noseWidth=pick([.9,1,1.1]);state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);markCharacterCustom();syncDesignControls();update();toast('تم ابتكار إطلالة جديدة')});
 document.getElementById('saveLook').addEventListener('click',()=>{const selected=getCharacterPreset(document.getElementById('characterPreset')?.value);const data=createCharacterDocument(state,selected||{id:'custom',name:'شخصيتي المخصصة',description:'شخصية مخصصة أنشأها المستخدم.',tags:['custom']});const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
 const DESIGN_CONTROL_DEFS={
  body:[
@@ -489,7 +490,7 @@ function buildDesignControls(){
    const output=document.createElement('output');output.textContent='';
    const eventName=input.type==='range'?'input':'change';
    input.addEventListener(eventName,()=>{
-    const value=input.type==='checkbox'?input.checked:input.type==='range'?Number(input.value):input.value;
+    markCharacterCustom();const value=input.type==='checkbox'?input.checked:input.type==='range'?Number(input.value):input.value;
     state[section][key]=value;if(output)output.textContent=input.type==='range'?value.toFixed(2):'';
     update();
    });
