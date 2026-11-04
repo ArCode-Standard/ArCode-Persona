@@ -83,3 +83,14 @@ The GLB must contain matching morph targets or a conventionally named skeleton f
 - New exports use character document format v2.
 - Unknown properties, invalid ranges, unsupported enum values, and malformed hex colors are rejected.
 - Character designs are stored locally or exported by the browser; this schema does not upload a user's design.
+
+
+## Procedural human anatomy foundation
+
+The procedural preview builds an underlying human volume in anatomical order:
+- Thorax/rib-cage mass, abdomen, and pelvis.
+- Shoulder/clavicle masses, upper arms, elbow landmarks, forearms, wrists, palms, and thumb masses.
+- Separate thighs, knees, calves, ankles, and feet.
+- Independent shoulder, torso, waist, hip, arm, and leg proportion inputs.
+
+The anatomy is generated beneath the wardrobe layer so clothing remains a separate visual system. It is an editable stylized blockout intended to establish complete human proportions and limb placement. It is not a production sculpt, anatomical reference, realistic hand/foot model, or substitute for a retopologized and weighted base mesh. The imported GLB pipeline remains the route to production-grade anatomy until a dedicated base character asset is authored.
