@@ -5,6 +5,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
 import { buildBoneRemap } from './src/garment-rig.js';
 import { buildHumanAnatomy } from './src/human-anatomy.js';
+import { buildHumanRig } from './src/human-rig.js';
+import { applyColorPalette, createSkinMaterial, createFabricMaterial } from './src/color-system.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
@@ -50,7 +52,7 @@ let morphBindings=new Map();
 const importedBoneBaseScales=new WeakMap();
 let importedBaseScale=1;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-const skinMat=()=>mat(state.skin);
+const skinMat=()=>createSkinMaterial(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
 const cylinder=(parent,rt,rb,h,x,y,z,material,segments=48)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments,1),material);m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m};
 let faceParts={};
@@ -60,10 +62,11 @@ function build(){
  const skin=skinMat(),hair=mat(state.hair),gold=mat(state.clothing.trimColor,.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
  const body=state.body,face=state.face,hairDesign=state.hairDetails,wardrobe=state.clothing;
  const fitScale={slim:.92,regular:1,loose:1.08,oversized:1.16}[wardrobe.fit];
- const clothMaterial=mat(state.cloth,.58),trim=mat(wardrobe.trimColor,.34,.62);
+ const clothMaterial=createFabricMaterial(state.cloth),trim=createFabricMaterial(wardrobe.trimColor,true);
  const torso=new THREE.Group();model.add(torso);model.scale.set(1,body.height,1);
  torso.scale.set(body.shoulderWidth*fitScale,body.torsoLength,body.bodyDepth);
  buildHumanAnatomy(torso, body, skin);
+ const humanoidRig=buildHumanRig(body);torso.add(humanoidRig.root);model.userData.humanoidRig=humanoidRig;
  const robeHeight=(state.outfit==='modern'?1.13:1.48)*wardrobe.robeLength;
  if(state.outfit==='modern'){
   cylinder(torso,.49*fitScale,.63*fitScale,robeHeight,0,-.42,0,clothMaterial);
@@ -93,12 +96,14 @@ function build(){
  const head=new THREE.Group();head.position.set(0,1.12+(body.neckLength-1)*.14,0);head.scale.set(body.headScale,body.headScale,body.headScale);model.add(head);
  const shapeFactor={oval:[1,1],round:[1.08,.94],square:[1.04,.98],heart:[1,.98],long:[.94,1.08]}[face.shape];
  const jawFactor={oval:1,round:1.08,square:1.14,heart:.86,long:.94}[face.shape];
- sphere(head,0,0,0,.58*face.width*shapeFactor[0],.72*face.height*shapeFactor[1],.49,skin,48);
- sphere(head,0,-.27,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,36);
- sphere(head,0,-.48,.12,.22*face.chinWidth,.15,.25,skin,24);
+ sphere(head,0,0,0,.58*face.width*shapeFactor[0],.72*face.height*shapeFactor[1],.49,skin,56);
+ sphere(head,0,-.25,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,48);
+ sphere(head,0,-.46,.12,.22*face.chinWidth,.16,.25,skin,32);
+ // Subtle mandibular and cheek transitions make face silhouettes respond coherently to the selected shape.
+ for(const side of [-1,1])sphere(head,side*.235*face.jawWidth,-.29,.285,.16*face.jawWidth,.19,.12,skin,24);
  sphere(head,-.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);sphere(head,.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);
  // Ears: scale, projection and rotation are independent design parameters.
- for(const s of [-1,1]){const ear=sphere(head,s*(.57+.035*face.earProtrusion),-.02,0,.11*face.earSize,.17*face.earSize,.09*face.earProtrusion,skin);ear.rotation.z=s*face.earAngle*Math.PI/180}
+ for(const s of [-1,1]){const earX=s*(.57+.035*face.earProtrusion);const ear=sphere(head,earX,-.02,0,.11*face.earSize,.17*face.earSize,.09*face.earProtrusion,skin);ear.rotation.z=s*face.earAngle*Math.PI/180;sphere(head,earX,-.025,.068,.045*face.earSize,.09*face.earSize,.018,dark,18);curve(head,[[earX-s*.015,-.09,.083],[earX+s*.018,-.02,.09],[earX-s*.012,.045,.08]],skin,.009)}
  if(state.hairStyle!=='shaved'){
   const volume=hairDesign.volume,density=hairDesign.density;
   sphere(head,0,.49*volume,-.02,.59*volume,.28*volume,.5*volume,hair);
@@ -112,12 +117,17 @@ function build(){
  // brows and eyes
  faceParts={eyes:[],mouth:null};
  for(const s of [-1,1]){
-  curve(head,[[s*.12,.18,.425],[s*.23,.22,.45],[s*.34,.18,.41]],hair,.025);
-  sphere(head,s*.235,.035,.438,.095,.075,.035,white);
-  faceParts.eyes.push(sphere(head,s*.235,.035,.472,.038,.045,.018,eye,20));
-  sphere(head,s*.235,.035,.488,.016,.02,.009,dark,16);
+  const eyeX=s*.235*face.width;
+  curve(head,[[s*.12*face.width,.18,.425],[eyeX,.22,.45],[s*.34*face.width,.18,.41]],hair,.022);
+  sphere(head,eyeX,.035,.438,.095*face.width,.065,.035,white,28);
+  faceParts.eyes.push(sphere(head,eyeX,.035,.472,.036,.043,.018,eye,24));
+  sphere(head,eyeX,.035,.488,.015,.019,.009,dark,16);
  }
- sphere(head,0,-.08,.47,.055*face.noseWidth,.14*face.noseLength,.075*face.noseBridgeHeight,skin);sphere(head,0,-.15,.51,.07*face.noseWidth,.045*face.noseTip,.07,skin,20);
+ // Nasal bridge, dorsum, tip and alar wings are independently scaled but share one centerline.
+ sphere(head,0,.015,.435,.042*face.noseWidth,.115*face.noseLength,.052*face.noseBridgeHeight,skin,28);
+ sphere(head,0,-.095,.485,.052*face.noseWidth,.105*face.noseLength,.065*face.noseBridgeHeight,skin,28);
+ sphere(head,0,-.17,.525,.068*face.noseWidth,.052*face.noseTip,.065,skin,24);
+ for(const side of [-1,1])sphere(head,side*.047*face.noseWidth,-.17,.505,.032*face.noseWidth,.026,.035,skin,18);
  faceParts.mouth=curve(head,[[-.14,-.29,.43],[0,-.34,.47],[.14,-.29,.43]],mat('#6b302d'),.018);
  if(state.expression==='neutral'){faceParts.mouth.scale.y=.45}
  if(state.expression==='surprised'){faceParts.mouth.scale.set(.55,1.8,1)}
