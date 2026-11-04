@@ -39,6 +39,9 @@ const STORAGE_KEY='arcode-persona:look:v1';
 const importedRoot=new THREE.Group();
 scene.add(importedRoot);
 let importedAvatar=null;
+let importedMixer=null;
+let importedActions=[];
+let activeAnimationIndex=-1;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -128,7 +131,7 @@ renderer.domElement.addEventListener('pointerup',()=>dragging=false);
 renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 renderer.domElement.addEventListener('lostpointercapture',()=>dragging=false);
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.004,5.4,10);camera.position.z=zoom},{passive:false});
-function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;importedRoot.rotation.y=rotation;importedRoot.position.y=model.position.y;renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const delta=clock.getDelta();const t=clock.elapsedTime;if(importedMixer)importedMixer.update(delta);if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;importedRoot.rotation.y=rotation;importedRoot.position.y=model.position.y;renderer.render(scene,camera)}
 animate();
 document.getElementById('loading').classList.add('hidden');
 function update(){build();persistLook()}
@@ -157,6 +160,44 @@ avatarFileInput.addEventListener('change',async()=>{
  if(!file)return;
  try{await importAvatarAsset(file)}catch(error){console.error('GLB import failed:',error);toast(error.message||'تعذر استيراد نموذج GLB')}finally{avatarFileInput.value=''}
 });
+const animationSelect=document.getElementById('avatarAnimation');
+const animationToggle=document.getElementById('toggleAvatarAnimation');
+animationSelect.addEventListener('change',()=>playAvatarAnimation(Number(animationSelect.value)));
+animationToggle.addEventListener('click',toggleAvatarAnimation);
+function playAvatarAnimation(index){
+ if(!importedMixer||!importedActions.length||!Number.isInteger(index)||index<0||index>=importedActions.length)return;
+ importedActions.forEach(action=>action.stop());
+ activeAnimationIndex=index;
+ importedActions[index].reset().fadeIn(.2).play();
+ animationToggle.disabled=false;
+ animationToggle.textContent='إيقاف الحركة';
+ animationToggle.setAttribute('aria-pressed','true');
+}
+function toggleAvatarAnimation(){
+ if(!importedMixer||activeAnimationIndex<0)return;
+ const action=importedActions[activeAnimationIndex];
+ if(action.isRunning()){
+  action.paused=true;
+  animationToggle.textContent='تشغيل الحركة';
+  animationToggle.setAttribute('aria-pressed','true');
+ }else{
+  action.paused=false;
+  action.play();
+  animationToggle.textContent='إيقاف الحركة';
+  animationToggle.setAttribute('aria-pressed','false');
+ }
+}
+function clearAvatarAnimations(){
+ if(importedMixer&&importedAvatar)importedMixer.stopAllAction();
+ importedMixer=null;
+ importedActions=[];
+ activeAnimationIndex=-1;
+ animationSelect.replaceChildren(new Option('لا توجد حركات',''));
+ animationSelect.disabled=true;
+ animationToggle.disabled=true;
+ animationToggle.textContent='لا توجد حركة';
+ animationToggle.setAttribute('aria-pressed','false');
+}
 async function importAvatarAsset(file){
  if(!/\.glb$/i.test(file.name))throw new Error('صيغة الملف غير مدعومة؛ استخدم GLB.');
  if(file.size>MAX_GLB_BYTES)throw new Error('حجم النموذج يتجاوز الحد المسموح (32MB).');
@@ -171,16 +212,26 @@ async function importAvatarAsset(file){
  if(!Number.isFinite(size.y)||size.y<=0)throw new Error('أبعاد الشخصية غير صالحة.');
  const center=bounds.getCenter(new THREE.Vector3());
  const scale=THREE.MathUtils.clamp(2.8/size.y,.001,1000);
- root.position.copy(center).multiplyScalar(-scale);
- root.scale.multiplyScalar(scale);
+ const normalizedRoot=new THREE.Group();
+ normalizedRoot.add(root);
+ normalizedRoot.scale.setScalar(scale);
+ normalizedRoot.position.copy(center).multiplyScalar(-scale);
  disposeImportedAvatar();
- importedAvatar=root;
- importedRoot.add(root);
+ importedAvatar=normalizedRoot;
+ importedRoot.add(normalizedRoot);
+ importedMixer=new THREE.AnimationMixer(root);
+ importedActions=gltf.animations.map(clip=>importedMixer.clipAction(clip));
+ animationSelect.replaceChildren(new Option('اختر الحركة',''));
+ gltf.animations.forEach((clip,index)=>animationSelect.add(new Option(clip.name||`حركة ${index+1}`,String(index))));
+ animationSelect.disabled=importedActions.length===0;
+ animationToggle.disabled=importedActions.length===0;
+ if(importedActions.length)playAvatarAnimation(0);
  importedRoot.scale.setScalar(1);
  model.visible=false;
- toast(gltf.animations?.length?'تم تحميل النموذج؛ ملفات الحركة محفوظة لكن تشغيلها قيد التطوير':'تم تحميل نموذج GLB');
+ toast(importedActions.length?'تم تحميل الشخصية وتشغيل أول حركة':'تم تحميل نموذج GLB دون حركات مدمجة');
 }
 function disposeImportedAvatar(){
+ clearAvatarAnimations();
  if(!importedAvatar)return;
  importedRoot.remove(importedAvatar);
  const disposedTextures=new Set();
