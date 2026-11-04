@@ -56,3 +56,4 @@ test('rejects malformed color strings and invalid option types', () => {
 test('rejects unsupported extra configuration fields', () => {
   assert.throws(() => validateAvatarConfig({ avatarUrl: 'https://example.com/a.glb' }), /Unknown avatar property/);
 });
+
