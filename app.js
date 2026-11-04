@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from './src/avatar-config.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
@@ -7,6 +9,7 @@ scene.background=null;
 const camera=new THREE.PerspectiveCamera(34,1,.1,100);
 camera.position.set(0,1.45,7.6);
 let renderer;
+let renderAvailable=true;
 try {
  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -33,7 +36,9 @@ const floor=new THREE.Mesh(new THREE.CircleGeometry(2.25,64),new THREE.MeshBasic
 const model=new THREE.Group();scene.add(model);
 const state={...DEFAULT_AVATAR_CONFIG};
 const STORAGE_KEY='arcode-persona:look:v1';
-let renderAvailable=true;
+const importedRoot=new THREE.Group();
+scene.add(importedRoot);
+let importedAvatar=null;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -123,7 +128,7 @@ renderer.domElement.addEventListener('pointerup',()=>dragging=false);
 renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
 renderer.domElement.addEventListener('lostpointercapture',()=>dragging=false);
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.004,5.4,10);camera.position.z=zoom},{passive:false});
-function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;importedRoot.rotation.y=rotation;importedRoot.position.y=model.position.y;renderer.render(scene,camera)}
 animate();
 document.getElementById('loading').classList.add('hidden');
 function update(){build();persistLook()}
@@ -143,6 +148,56 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{doc
 document.getElementById('rotate').addEventListener('click',e=>{auto=!auto;e.currentTarget.classList.toggle('active',auto);e.currentTarget.innerHTML=auto?'<span>⟳</span> دوران تلقائي':'<span>Ⅱ</span> إيقاف الدوران'});
 document.getElementById('frontView').addEventListener('click',()=>{rotation=0;auto=false;document.getElementById('rotate').classList.remove('active')});
 document.getElementById('resetView').addEventListener('click',()=>{rotation=0;zoom=7.6;camera.position.z=zoom});
+
+const avatarFileInput=document.getElementById('avatarAssetFile');
+document.getElementById('importAvatarAsset').addEventListener('click',()=>avatarFileInput.click());
+document.getElementById('removeAvatarAsset').addEventListener('click',removeAvatarAsset);
+avatarFileInput.addEventListener('change',async()=>{
+ const file=avatarFileInput.files?.[0];
+ if(!file)return;
+ try{await importAvatarAsset(file)}finally{avatarFileInput.value=''}
+});
+async function importAvatarAsset(file){
+ if(!/\.glb$/i.test(file.name))throw new Error('صيغة الملف غير مدعومة؛ استخدم GLB.');
+ if(file.size>MAX_GLB_BYTES)throw new Error('حجم النموذج يتجاوز الحد المسموح (32MB).');
+ const buffer=await file.arrayBuffer();
+ validateGlbArrayBuffer(buffer);
+ const loader=new GLTFLoader();
+ const gltf=await loader.parseAsync(buffer,'');
+ const root=gltf.scene;
+ if(!root)throw new Error('ملف GLB لا يحتوي على مشهد قابل للعرض.');
+ const bounds=new THREE.Box3().setFromObject(root);
+ const size=bounds.getSize(new THREE.Vector3());
+ if(!Number.isFinite(size.y)||size.y<=0)throw new Error('أبعاد الشخصية غير صالحة.');
+ const center=bounds.getCenter(new THREE.Vector3());
+ const scale=THREE.MathUtils.clamp(2.8/size.y,.001,1000);
+ root.position.sub(center);
+ root.scale.multiplyScalar(scale);
+ disposeImportedAvatar();
+ importedAvatar=root;
+ importedRoot.add(root);
+ importedRoot.scale.setScalar(1);
+ model.visible=false;
+ toast(gltf.animations?.length?'تم تحميل النموذج؛ ملفات الحركة محفوظة لكن تشغيلها قيد التطوير':'تم تحميل نموذج GLB');
+}
+function disposeImportedAvatar(){
+ if(!importedAvatar)return;
+ importedRoot.remove(importedAvatar);
+ importedAvatar.traverse(node=>{
+  node.geometry?.dispose();
+  if(node.material)for(const material of(Array.isArray(node.material)?node.material:[node.material]))material.dispose();
+  if(node.skeleton?.boneTexture)node.skeleton.boneTexture.dispose();
+ });
+ importedAvatar=null;
+}
+function removeAvatarAsset(){
+ disposeImportedAvatar();
+ importedRoot.position.set(0,0,0);
+ importedRoot.rotation.set(0,0,0);
+ model.visible=true;
+ toast('تم الرجوع إلى النموذج الافتراضي');
+}
+
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
 function reset(){Object.assign(state,DEFAULT_AVATAR_CONFIG);syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
@@ -152,4 +207,4 @@ const importInput=document.getElementById('importLookFile');
 document.getElementById('importLook').addEventListener('click',()=>importInput.click());
 importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
 try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreLook(JSON.parse(saved))}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY)}
-window.addEventListener('beforeunload',()=>{renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.dispose()}})});
+window.addEventListener('beforeunload',()=>{renderer.dispose();disposeImportedAvatar();scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.dispose()}})});
