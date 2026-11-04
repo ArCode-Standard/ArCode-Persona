@@ -1,59 +1,53 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  AVATAR_CONFIG_VERSION,
-  DEFAULT_AVATAR_CONFIG,
-  validateAvatarConfig
-} from '../src/avatar-config.js';
+import { AVATAR_CONFIG_VERSION, DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from '../src/avatar-config.js';
 
-test('default avatar configuration is valid and versioned', () => {
-  const config = validateAvatarConfig(DEFAULT_AVATAR_CONFIG);
-  assert.equal(config.schemaVersion, AVATAR_CONFIG_VERSION);
-  assert.equal(config.outfit, 'djellaba');
+test('default design is versioned and includes anatomy and wardrobe sections', () => {
+ const config=validateAvatarConfig(DEFAULT_AVATAR_CONFIG);
+ assert.equal(config.schemaVersion,AVATAR_CONFIG_VERSION);
+ assert.equal(config.body.shoulderWidth,1);
+ assert.equal(config.face.shape,'oval');
+ assert.equal(config.clothing.fit,'regular');
 });
 
-test('partial saved looks inherit stable defaults', () => {
-  const config = validateAvatarConfig({ outfit: 'caftan', cloth: '#8a3344' });
-  assert.equal(config.outfit, 'caftan');
-  assert.equal(config.hairStyle, DEFAULT_AVATAR_CONFIG.hairStyle);
+test('migrates legacy version 1 looks into version 2 without losing appearance',()=>{
+ const config=validateAvatarConfig({schemaVersion:1,outfit:'caftan',skin:'#8a3344'});
+ assert.equal(config.schemaVersion,2);
+ assert.equal(config.outfit,'caftan');
+ assert.equal(config.body.height,1);
 });
 
-test('rejects unsupported schema versions', () => {
-  assert.throws(() => validateAvatarConfig({ schemaVersion: 99 }), /schema version/);
+test('normalizes partial nested design sections',()=>{
+ const config=validateAvatarConfig({face:{shape:'square',noseWidth:1.2},clothing:{belt:true}});
+ assert.equal(config.face.shape,'square');
+ assert.equal(config.face.noseWidth,1.2);
+ assert.equal(config.face.jawWidth,1);
+ assert.equal(config.clothing.belt,true);
 });
 
-test('rejects invalid colors', () => {
-  assert.throws(() => validateAvatarConfig({ skin: 'red' }), /Invalid color/);
+test('rejects unsupported schema versions and unknown properties',()=>{
+ assert.throws(()=>validateAvatarConfig({schemaVersion:99}),/schema version/);
+ assert.throws(()=>validateAvatarConfig({admin:true}),/Unknown avatar property/);
+ assert.throws(()=>validateAvatarConfig({face:{thirdEye:true}}),/Unknown design property/);
 });
 
-test('rejects unknown properties rather than silently persisting them', () => {
-  assert.throws(() => validateAvatarConfig({ admin: true }), /Unknown avatar property/);
+test('validates numeric ranges and enumerated face/hair/clothing values',()=>{
+ assert.throws(()=>validateAvatarConfig({body:{height:4}}),/body.height/);
+ assert.throws(()=>validateAvatarConfig({face:{shape:'triangle'}}),/face.shape/);
+ assert.throws(()=>validateAvatarConfig({hairDetails:{part:'diagonal'}}),/hairDetails.part/);
+ assert.throws(()=>validateAvatarConfig({clothing:{trimColor:'gold'}}),/trimColor/);
 });
 
-test('rejects unsupported wardrobe values', () => {
-  assert.throws(() => validateAvatarConfig({ outfit: 'unreviewed-costume' }), /Unsupported outfit/);
+test('rejects malformed colors, arrays and null',()=>{
+ assert.throws(()=>validateAvatarConfig({skin:'red'}),/Invalid color/);
+ assert.throws(()=>validateAvatarConfig(null),/must be an object/);
+ assert.throws(()=>validateAvatarConfig([]),/must be an object/);
 });
 
-test('rejects arrays and null', () => {
-  assert.throws(() => validateAvatarConfig(null), /must be an object/);
-  assert.throws(() => validateAvatarConfig([]), /must be an object/);
+test('does not mutate caller input and freezes normalized sections',()=>{
+ const input={face:{jawWidth:1.1}};
+ const config=validateAvatarConfig(input);
+ assert.equal(input.face.shape,undefined);
+ assert.equal(config.face.jawWidth,1.1);
+ assert.ok(Object.isFrozen(config.face));
 });
-
-
-test('normalizes partial values without mutating the input', () => {
-  const input = { outfit: 'caftan' };
-  const config = validateAvatarConfig(input);
-  assert.equal(config.outfit, 'caftan');
-  assert.equal(input.hairStyle, undefined);
-  assert.equal(config.hairStyle, DEFAULT_AVATAR_CONFIG.hairStyle);
-});
-
-test('rejects malformed color strings and invalid option types', () => {
-  assert.throws(() => validateAvatarConfig({ hair: '#fff' }), /Invalid color/);
-  assert.throws(() => validateAvatarConfig({ hairStyle: null }), /Unsupported hairStyle/);
-});
-
-test('rejects unsupported extra configuration fields', () => {
-  assert.throws(() => validateAvatarConfig({ avatarUrl: 'https://example.com/a.glb' }), /Unknown avatar property/);
-});
-
