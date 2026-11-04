@@ -36,7 +36,7 @@ const key=new THREE.DirectionalLight(0xffe6c4,3.2);key.position.set(-3,5,5);key.
 const rim=new THREE.DirectionalLight(0x9bc9b5,2.3);rim.position.set(3,3,-4);scene.add(rim);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(2.25,64),new THREE.MeshBasicMaterial({color:0x9cb79a,transparent:true,opacity:.08}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.43;scene.add(floor);
 const model=new THREE.Group();scene.add(model);
-const state={...DEFAULT_AVATAR_CONFIG};
+const state=JSON.parse(JSON.stringify(DEFAULT_AVATAR_CONFIG));
 const STORAGE_KEY='arcode-persona:look:v2';
 const importedRoot=new THREE.Group();
 scene.add(importedRoot);
@@ -75,6 +75,7 @@ function build(){
   const stitchCount=Math.round(wardrobe.embroidery*7);
   for(let i=0;i<stitchCount;i++){const y=-.05-i*.13;sphere(torso,0,y,.39,.018,.018,.01,trim,12)}
   if(wardrobe.belt){const belt=cylinder(torso,.49,.49,.075,0,-.28,.015,trim,48);belt.scale.x=fitScale}
+  if(wardrobe.layer!=='single'&&state.outfit!=='takchita'){const outerLayer=cylinder(torso,.47*fitScale,.65*fitScale,robeHeight*1.02,0,-.48,-.025,mat(wardrobe.layer==='ceremonial'?'#d8c7a0':state.cloth,.48),48);outerLayer.material.transparent=true;outerLayer.material.opacity=wardrobe.layer==='ceremonial'?.3:.16}
   if(state.outfit==='takchita'){const outer=cylinder(torso,.5*fitScale,.68*fitScale,robeHeight*1.04,0,-.48,-.015,mat('#d8c7a0',.45),48);outer.material.transparent=true;outer.material.opacity=.22}
   if(state.outfit==='caftan'){curve(torso,[[-.34,.15,.23],[-.25,-.2,.33],[0,-.8,.57],[.25,-.2,.33],[.34,.15,.23]],trim,.01+.014*wardrobe.embroidery)}
   if(state.outfit==='djellaba'){const hood=sphere(torso,0,.49,-.18,.36,.25,.22,clothMaterial);hood.visible=state.headwear==='hood'}
@@ -90,6 +91,7 @@ function build(){
  const jawFactor={oval:1,round:1.08,square:1.14,heart:.86,long:.94}[face.shape];
  sphere(head,0,0,0,.58*face.width*shapeFactor[0],.72*face.height*shapeFactor[1],.49,skin,48);
  sphere(head,0,-.27,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,36);
+ sphere(head,0,-.48,.12,.22*face.chinWidth,.15,.25,skin,24);
  sphere(head,-.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);sphere(head,.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);
  // Ears: scale, projection and rotation are independent design parameters.
  for(const s of [-1,1]){const ear=sphere(head,s*(.57+.035*face.earProtrusion),-.02,0,.11*face.earSize,.17*face.earSize,.09*face.earProtrusion,skin);ear.rotation.z=s*face.earAngle*Math.PI/180}
@@ -153,14 +155,6 @@ function update(){build();applyImportedCharacterDesign();persistLook()}
 function applyImportedCharacterDesign(){
  if(!importedAvatar)return;
  const design=state;
- const morphAliases={
-  'FaceWidth':['facewidth','headwidth'], 'FaceHeight':['faceheight','headheight'],
-  'CheekWidth':['cheekwidth','cheekbonewidth'], 'JawWidth':['jawwidth','jawwide'],
-  'JawNarrow':['jawnarrow'], 'ChinWidth':['chinwidth'], 'NoseWidth':['nosewidth'],
-  'NoseNarrow':['nosenarrow'], 'NoseLength':['noselength'], 'NoseShort':['noseshort'],
-  'NoseBridge':['nosebridgeheight'], 'EarSize':['earsize'], 'EarProtrusion':['earprotrusion'],
-  'HeadScale':['headscale']
- };
  const targets={
   facewidth:design.face.width, headwidth:design.face.width,
   faceheight:design.face.height, headheight:design.face.height,
@@ -173,7 +167,7 @@ function applyImportedCharacterDesign(){
   earprotrusion:design.face.earProtrusion, headscale:design.body.headScale
  };
  importedAvatar.traverse(node=>{
-  if(node.isSkinnedMesh&&node.morphTargetDictionary&&node.morphTargetInfluences){
+  if(node.isMesh&&node.morphTargetDictionary&&node.morphTargetInfluences){
    for(const [name,index] of Object.entries(node.morphTargetDictionary)){
     const key=name.toLowerCase().replace(/[^a-z]/g,'');
     if(Object.prototype.hasOwnProperty.call(targets,key)){
@@ -198,7 +192,8 @@ function applyImportedCharacterDesign(){
  });
 }
 function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(validateAvatarConfig(state)))}catch(error){console.warn('Unable to save persona locally:',error)}}
-function restoreLook(input){try{const characterDocument=validateCharacterDocument(input);Object.assign(state,characterDocument.config);syncDesignControls();const selector=globalThis.document.getElementById('characterPreset');if(selector)selector.value=characterDocument.profile?.id||'';syncControls();update();toast(characterDocument.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
+function applyAvatarConfig(input){const config=validateAvatarConfig(input);Object.assign(state,config);for(const section of ['body','face','hairDetails','clothing'])state[section]={...config[section]};return config}
+function restoreLook(input){try{const characterDocument=validateCharacterDocument(input);applyAvatarConfig(characterDocument.config);syncDesignControls();const selector=globalThis.document.getElementById('characterPreset');if(selector)selector.value=characterDocument.profile?.id||'';syncControls();update();toast(characterDocument.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
 function syncControls(){
  const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
  for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
@@ -439,7 +434,7 @@ function removeAvatarAsset(){
 }
 
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
-function reset(){Object.assign(state,validateAvatarConfig(DEFAULT_AVATAR_CONFIG));syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
+function reset(){applyAvatarConfig(DEFAULT_AVATAR_CONFIG);syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
 document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.body.shoulderWidth=pick([.92,1,1.08]);state.face.shape=pick(['oval','round','square','heart','long']);state.face.noseWidth=pick([.9,1,1.1]);state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);update();toast('تم ابتكار إطلالة جديدة')});
 document.getElementById('saveLook').addEventListener('click',()=>{const selected=getCharacterPreset(document.getElementById('characterPreset')?.value);const data=createCharacterDocument(state,selected||{id:'custom',name:'شخصيتي المخصصة',description:'شخصية مخصصة أنشأها المستخدم.',tags:['custom']});const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
@@ -509,7 +504,7 @@ function syncDesignControls(){
 buildDesignControls();
 
 const characterPreset=document.getElementById('characterPreset');
-if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' — '+item.description;characterPreset.appendChild(option)}characterPreset.addEventListener('change',()=>{if(!characterPreset.value)return;try{const preset=getCharacterPreset(characterPreset.value);Object.assign(state,validateAvatarConfig(preset.config));syncControls();syncDesignControls();update();toast('تم تطبيق تصميم '+preset.name)}catch(error){console.error(error);toast('تعذر تطبيق تصميم الشخصية')}})}
+if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' — '+item.description;characterPreset.appendChild(option)}characterPreset.addEventListener('change',()=>{if(!characterPreset.value)return;try{const preset=getCharacterPreset(characterPreset.value);applyAvatarConfig(preset.config);syncControls();syncDesignControls();update();toast('تم تطبيق تصميم '+preset.name)}catch(error){console.error(error);toast('تعذر تطبيق تصميم الشخصية')}})}
 const importInput=document.getElementById('importLookFile');
 document.getElementById('importLook').addEventListener('click',()=>importInput.click());
 importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
