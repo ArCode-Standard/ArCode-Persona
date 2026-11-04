@@ -63,7 +63,7 @@ Before an asset is accepted:
 5. Check that all required textures are embedded and the GLB has no external resource URLs.
 6. Test on a mid-range mobile device for frame time, memory, and download size.
 
-The current runtime can import a single self-contained avatar GLB. Modular garment attachment/retargeting is a separate runtime feature and must not be implied by this exporter or validator.
+The runtime can import a self-contained avatar GLB, then import one skinned garment GLB locally and rebind its skeleton by exact bone names to the avatar rig. This is a first compatibility layer, not cloth simulation: garment and avatar must share the same rest pose, coordinate convention, scale, and bone-name contract. Only one garment package is mounted at a time; production layering and multi-piece outfit composition remain future work.
 
 ## Provenance and licensing
 
