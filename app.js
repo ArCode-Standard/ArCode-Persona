@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from './src/avatar-config.js';
+import { CHARACTER_CATALOG, getCharacterPreset, validateCharacterDocument, createCharacterDocument } from './src/character-library.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
 import { buildBoneRemap } from './src/garment-rig.js';
@@ -35,8 +36,8 @@ const key=new THREE.DirectionalLight(0xffe6c4,3.2);key.position.set(-3,5,5);key.
 const rim=new THREE.DirectionalLight(0x9bc9b5,2.3);rim.position.set(3,3,-4);scene.add(rim);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(2.25,64),new THREE.MeshBasicMaterial({color:0x9cb79a,transparent:true,opacity:.08}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.43;scene.add(floor);
 const model=new THREE.Group();scene.add(model);
-const state={...DEFAULT_AVATAR_CONFIG};
-const STORAGE_KEY='arcode-persona:look:v1';
+const state=JSON.parse(JSON.stringify(DEFAULT_AVATAR_CONFIG));
+const STORAGE_KEY='arcode-persona:look:v2';
 const importedRoot=new THREE.Group();
 scene.add(importedRoot);
 let importedAvatar=null;
@@ -45,6 +46,8 @@ let importedMixer=null;
 let importedActions=[];
 let activeAnimationIndex=-1;
 let morphBindings=new Map();
+const importedBoneBaseScales=new WeakMap();
+let importedBaseScale=1;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -53,43 +56,56 @@ let faceParts={};
 function curve(parent,points,material,r=.018){const path=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(path,24,r,8,false),material);parent.add(mesh);return mesh}
 function build(){
  while(model.children.length) {const o=model.children[0];model.remove(o);o.traverse(n=>{n.geometry?.dispose();if(n.material){for(const material of (Array.isArray(n.material)?n.material:[n.material])) material.dispose()}})}
- const skin=skinMat(),hair=mat(state.hair),cloth=mat(state.cloth,.58),gold=mat('#c7a45e',.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
- const torso=new THREE.Group();model.add(torso);
- // Robe / outfit silhouette
+ const skin=skinMat(),hair=mat(state.hair),gold=mat(state.clothing.trimColor,.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
+ const body=state.body,face=state.face,hairDesign=state.hairDetails,wardrobe=state.clothing;
+ const fitScale={slim:.92,regular:1,loose:1.08,oversized:1.16}[wardrobe.fit];
+ const clothMaterial=mat(state.cloth,.58),trim=mat(wardrobe.trimColor,.34,.62);
+ const torso=new THREE.Group();model.add(torso);model.scale.set(1,body.height,1);
+ torso.scale.set(body.shoulderWidth*fitScale,body.torsoLength,body.bodyDepth);
+ const robeHeight=(state.outfit==='modern'?1.13:1.48)*wardrobe.robeLength;
  if(state.outfit==='modern'){
-  cylinder(torso,.49,.63,1.13,0,-.42,0,cloth);
-  sphere(torso,0,.13,0,.48,.34,.29,cloth);
-  cylinder(torso,.18,.2,.24,0,.28,0,skin);
+  cylinder(torso,.49*fitScale,.63*fitScale,robeHeight,0,-.42,0,clothMaterial);
+  sphere(torso,0,.13,0,.48*fitScale,.34,.29,clothMaterial);
+  cylinder(torso,.18,.2,.24*wardrobe.collarHeight,0,.28,0,skin);
  }else{
-  cylinder(torso,.42,.62,1.48,0,-.48,0,cloth);
-  sphere(torso,0,.16,0,.47,.34,.31,cloth);
-  cylinder(torso,.17,.19,.22,0,.31,0,skin);
-  // embroidered front line and neckline
-  curve(torso,[[0,.2,.315],[0,-.15,.38],[0,-.65,.53],[0,-1.15,.55]],gold,.014);
-  curve(torso,[[-.13,.28,.27],[0,.17,.34],[.13,.28,.27]],gold,.012);
-  for(let y=-.05;y>-.95;y-=.18){sphere(torso,0,y,.39,.025,.025,.012,gold,12)}
-  if(state.outfit==='takchita'){cylinder(torso,.5,.68,1.55,0,-.48,-.015,mat('#d8c7a0',.45),48).material.transparent=true;torso.children[torso.children.length-1].material.opacity=.22}
-  if(state.outfit==='caftan'){curve(torso,[[-.34,.15,.23],[-.25,-.2,.33],[0,-.8,.57],[.25,-.2,.33],[.34,.15,.23]],gold,.018)}
-  if(state.outfit==='djellaba'){const hood=sphere(torso,0,.49,-.18,.36,.25,.22,cloth);hood.visible=state.headwear==='hood'}
+  const waist=.42*body.waistWidth*(wardrobe.fit==='slim'?.92:wardrobe.fit==='oversized'?1.12:1);
+  cylinder(torso,waist,.62*body.hipWidth*fitScale,robeHeight,0,-.48,0,clothMaterial);
+  sphere(torso,0,.16,0,.47*fitScale,.34,.31,clothMaterial);
+  cylinder(torso,.17,.19,.22*wardrobe.collarHeight,0,.31,0,skin);
+  curve(torso,[[0,.2,.315],[0,-.15,.38],[0,-.65,.53],[0,-1.15*wardrobe.robeLength,.55]],trim,.009+.012*wardrobe.embroidery);
+  curve(torso,[[-.13,.28,.27],[0,.17,.34],[.13,.28,.27]],trim,.008+.012*wardrobe.embroidery);
+  const stitchCount=Math.round(wardrobe.embroidery*7);
+  for(let i=0;i<stitchCount;i++){const y=-.05-i*.13;sphere(torso,0,y,.39,.018,.018,.01,trim,12)}
+  if(wardrobe.belt){const belt=cylinder(torso,.49,.49,.075,0,-.28,.015,trim,48);belt.scale.x=fitScale}
+  if(wardrobe.layer!=='single'&&state.outfit!=='takchita'){const outerLayer=cylinder(torso,.47*fitScale,.65*fitScale,robeHeight*1.02,0,-.48,-.025,mat(wardrobe.layer==='ceremonial'?'#d8c7a0':state.cloth,.48),48);outerLayer.material.transparent=true;outerLayer.material.opacity=wardrobe.layer==='ceremonial'?.3:.16}
+  if(state.outfit==='takchita'){const outer=cylinder(torso,.5*fitScale,.68*fitScale,robeHeight*1.04,0,-.48,-.015,mat('#d8c7a0',.45),48);outer.material.transparent=true;outer.material.opacity=.22}
+  if(state.outfit==='caftan'){curve(torso,[[-.34,.15,.23],[-.25,-.2,.33],[0,-.8,.57],[.25,-.2,.33],[.34,.15,.23]],trim,.01+.014*wardrobe.embroidery)}
+  if(state.outfit==='djellaba'){const hood=sphere(torso,0,.49,-.18,.36,.25,.22,clothMaterial);hood.visible=state.headwear==='hood'}
  }
- // arms
  for(const side of [-1,1]){
-  const arm=sphere(torso,side*.58,-.35,0,.17,.57,.17,cloth);arm.rotation.z=side*-.12;
-  sphere(torso,side*.59,-.92,.015,.14,.15,.14,skin);
-  sphere(torso,side*.59,-1.12,.015,.17,.17,.22,cloth);
+  const arm=sphere(torso,side*.58,-.35,0,.17*wardrobe.sleeveLength,.57*wardrobe.sleeveLength*body.armLength,.17,clothMaterial);arm.rotation.z=side*-.12;
+  sphere(torso,side*.59,-.92*wardrobe.sleeveLength,.015,.14,.15,.14,skin);
+  sphere(torso,side*.59,-1.12*wardrobe.sleeveLength,.015,.17,.17,.22,clothMaterial);
  }
- // neck and head
- cylinder(model,.17,.18,.28,0,.52,0,skin);
- const head=new THREE.Group();head.position.set(0,1.12,0);model.add(head);
- sphere(head,0,0,0,.58,.72,.49,skin,48);
- // ears
- for(const s of [-1,1])sphere(head,s*.57,-.02,0,.11,.17,.09,skin);
- // hair cap / styles
+ cylinder(model,.17,.18,.28*body.neckLength,0,.52,0,skin);
+ const head=new THREE.Group();head.position.set(0,1.12+(body.neckLength-1)*.14,0);head.scale.set(body.headScale,body.headScale,body.headScale);model.add(head);
+ const shapeFactor={oval:[1,1],round:[1.08,.94],square:[1.04,.98],heart:[1,.98],long:[.94,1.08]}[face.shape];
+ const jawFactor={oval:1,round:1.08,square:1.14,heart:.86,long:.94}[face.shape];
+ sphere(head,0,0,0,.58*face.width*shapeFactor[0],.72*face.height*shapeFactor[1],.49,skin,48);
+ sphere(head,0,-.27,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,36);
+ sphere(head,0,-.48,.12,.22*face.chinWidth,.15,.25,skin,24);
+ sphere(head,-.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);sphere(head,.29,-.03,.35,.16*face.cheekboneWidth,.16,.12,skin,20);
+ // Ears: scale, projection and rotation are independent design parameters.
+ for(const s of [-1,1]){const ear=sphere(head,s*(.57+.035*face.earProtrusion),-.02,0,.11*face.earSize,.17*face.earSize,.09*face.earProtrusion,skin);ear.rotation.z=s*face.earAngle*Math.PI/180}
  if(state.hairStyle!=='shaved'){
-  sphere(head,0,.49,-.02,.59,.28,.5,hair);
-  if(state.hairStyle==='short')sphere(head,0,.37,.29,.48,.15,.22,hair);
-  if(state.hairStyle==='curly'){for(let i=0;i<17;i++){const a=i/17*Math.PI*2;sphere(head,Math.cos(a)*.48,.45+Math.sin(i*2.1)*.055,Math.sin(a)*.4,.14,.15,.14,hair,16)}}
-  if(state.hairStyle==='long'){for(const s of [-1,1])sphere(head,s*.49,-.1,-.05,.13,.57,.18,hair)}
+  const volume=hairDesign.volume,density=hairDesign.density;
+  sphere(head,0,.49*volume,-.02,.59*volume,.28*volume,.5*volume,hair);
+  if(state.hairStyle==='short')sphere(head,0,.37,.29,.48*volume,.15*volume,.22*volume,hair);
+  if(state.hairStyle==='curly'){const curls=Math.round(10+14*density*hairDesign.curl);for(let i=0;i<curls;i++){const angle=i/curls*Math.PI*2;sphere(head,Math.cos(angle)*.48*volume,.45*volume+Math.sin(i*2.1)*.055,Math.sin(angle)*.4*volume,.105*volume,.12*volume,.11*volume,hair,16)}}
+  if(state.hairStyle==='long'){for(const s of [-1,1])sphere(head,s*.49*volume,-.1*hairDesign.length,-.05,.13*volume,.57*hairDesign.length,.18*volume,hair)}
+  if(hairDesign.fringe>.05)sphere(head,0,.34,.39,.3*volume,.08+hairDesign.fringe*.13,.16*volume,hair);
+  if(hairDesign.sideburn>.05)for(const s of [-1,1])sphere(head,s*.49,-.04,.12,.055,.12+hairDesign.sideburn*.12,.08,hair);
+  if(hairDesign.part!=='none'){const x=hairDesign.part==='left'?.12:hairDesign.part==='right'?-.12:0;curve(head,[[x,.72,.08],[x,.68,.22],[x,.57,.36]],mat('#5b5148'),.008)}
  }
  // brows and eyes
  faceParts={eyes:[],mouth:null};
@@ -99,7 +115,7 @@ function build(){
   faceParts.eyes.push(sphere(head,s*.235,.035,.472,.038,.045,.018,eye,20));
   sphere(head,s*.235,.035,.488,.016,.02,.009,dark,16);
  }
- sphere(head,0,-.08,.47,.07,.14,.075,skin);
+ sphere(head,0,-.08,.47,.055*face.noseWidth,.14*face.noseLength,.075*face.noseBridgeHeight,skin);sphere(head,0,-.15,.51,.07*face.noseWidth,.045*face.noseTip,.07,skin,20);
  faceParts.mouth=curve(head,[[-.14,-.29,.43],[0,-.34,.47],[.14,-.29,.43]],mat('#6b302d'),.018);
  if(state.expression==='neutral'){faceParts.mouth.scale.y=.45}
  if(state.expression==='surprised'){faceParts.mouth.scale.set(.55,1.8,1)}
@@ -137,19 +153,66 @@ renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.M
 function animate(){requestAnimationFrame(animate);const delta=clock.getDelta();const t=clock.elapsedTime;if(importedMixer)importedMixer.update(delta);if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;importedRoot.rotation.y=rotation;importedRoot.position.y=model.position.y;renderer.render(scene,camera)}
 animate();
 document.getElementById('loading').classList.add('hidden');
-function update(){build();persistLook()}
+function update(){build();applyImportedCharacterDesign();persistLook()}
+function applyImportedCharacterDesign(){
+ if(!importedAvatar)return;
+ const design=state;
+ const normalizedScale=importedBaseScale||1;
+ importedAvatar.scale.set(normalizedScale,normalizedScale*design.body.height,normalizedScale);
+ const targets={
+  facewidth:design.face.width, headwidth:design.face.width,
+  facenarrow:2-design.face.width, headnarrow:2-design.face.width,
+  faceheight:design.face.height, headheight:design.face.height,
+  faceround:design.face.shape==='round'?1:0, facesquare:design.face.shape==='square'?1:0,
+  faceheart:design.face.shape==='heart'?1:0, facelong:design.face.shape==='long'?1:0, faceoval:design.face.shape==='oval'?1:0,
+  cheekwidth:design.face.cheekboneWidth, cheekbonewidth:design.face.cheekboneWidth,
+  cheeknarrow:2-design.face.cheekboneWidth,
+  jawwidth:design.face.jawWidth, jawwide:design.face.jawWidth,
+  jawnarrow:2-design.face.jawWidth, chinwidth:design.face.chinWidth, chinnarrow:2-design.face.chinWidth,
+  nosewidth:design.face.noseWidth, nosenarrow:2-design.face.noseWidth,
+  noselength:design.face.noseLength, noseshort:2-design.face.noseLength,
+  nosebridgeheight:design.face.noseBridgeHeight, nosetip:design.face.noseTip, earsize:design.face.earSize,
+  earprotrusion:design.face.earProtrusion, headscale:design.body.headScale
+ };
+ importedAvatar.traverse(node=>{
+  if(node.isMesh&&node.morphTargetDictionary&&node.morphTargetInfluences){
+   for(const [name,index] of Object.entries(node.morphTargetDictionary)){
+    const key=name.toLowerCase().replace(/[^a-z]/g,'');
+    if(Object.prototype.hasOwnProperty.call(targets,key)){
+     const value=THREE.MathUtils.clamp((targets[key]-1)*2.5,0,1);
+     node.morphTargetInfluences[index]=value;
+    }
+   }
+  }
+  if(node.isBone){
+   const name=node.name.toLowerCase().replace(/[^a-z]/g,'');
+   let base=importedBoneBaseScales.get(node);if(!base){base=node.scale.clone();importedBoneBaseScales.set(node,base)}
+   let x=1,y=1;
+   if(/shoulder|clavicle|upperarm/.test(name))x=design.body.shoulderWidth;
+   if(/spine|chest|torso/.test(name))y=design.body.torsoLength;
+   if(/hips|pelvis/.test(name))x=design.body.hipWidth;
+   if(/upperleg|thigh|upleg/.test(name))y=design.body.legLength;
+   if(/lowerleg|calf|shin/.test(name))y=design.body.legLength;
+   if(/neck/.test(name))y=design.body.neckLength;
+   if(/head/.test(name))x=y=design.body.headScale;
+   node.scale.set(base.x*x,base.y*y,base.z);
+  }
+ });
+}
 function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(validateAvatarConfig(state)))}catch(error){console.warn('Unable to save persona locally:',error)}}
-function restoreLook(input){try{const config=validateAvatarConfig(input);Object.assign(state,config);syncControls();update();toast('تمت استعادة الإطلالة')}catch(error){toast('ملف الإطلالة غير صالح أو غير مدعوم');console.error(error)}}
+function applyAvatarConfig(input){const config=validateAvatarConfig(input);Object.assign(state,config);for(const section of ['body','face','hairDetails','clothing'])state[section]={...config[section]};return config}
+function restoreLook(input){try{const characterDocument=validateCharacterDocument(input);applyAvatarConfig(characterDocument.config);syncDesignControls();const selector=globalThis.document.getElementById('characterPreset');if(selector)selector.value=characterDocument.profile?.id||'';syncControls();update();toast(characterDocument.profile?'تم استيراد ملف الشخصية':'تمت استعادة الإطلالة')}catch(error){toast('ملف الشخصية غير صالح أو غير مدعوم');console.error(error)}}
 function syncControls(){
  const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
  for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
  document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.classList.toggle('selected',b.dataset.value===state.outfit));
  for(const id of ['hairStyle','expression','headwear','eyes','accessory'])document.getElementById(id).value=state[id];
 }
-function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
+function markCharacterCustom(){const selector=document.getElementById('characterPreset');if(selector)selector.value=''}
+function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
 bindSwatches('skinOptions','skin');bindSwatches('hairOptions','hair');bindSwatches('clothOptions','cloth');
-[['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{state[key]=e.target.value;update()}));
-document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#outfitOptions .choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.outfit=b.dataset.value;update()}));
+[['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{markCharacterCustom();state[key]=e.target.value;update()}));
+document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.addEventListener('click',()=>{markCharacterCustom();document.querySelectorAll('#outfitOptions .choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state.outfit=b.dataset.value;update()}));
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab,.tab-content').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')}));
 document.getElementById('rotate').addEventListener('click',e=>{auto=!auto;e.currentTarget.classList.toggle('active',auto);e.currentTarget.innerHTML=auto?'<span>⟳</span> دوران تلقائي':'<span>Ⅱ</span> إيقاف الدوران'});
 document.getElementById('frontView').addEventListener('click',()=>{rotation=0;auto=false;document.getElementById('rotate').classList.remove('active')});
@@ -293,11 +356,13 @@ async function importAvatarAsset(file){
  const normalizedRoot=new THREE.Group();
  normalizedRoot.add(root);
  normalizedRoot.scale.setScalar(scale);
+ importedBaseScale=scale;
  normalizedRoot.position.copy(center).multiplyScalar(-scale);
  disposeImportedAvatar();
  importedAvatar=normalizedRoot;
  importedRoot.add(normalizedRoot);
  buildMorphControls(root);
+ applyImportedCharacterDesign();
  importedMixer=new THREE.AnimationMixer(root);
  importedActions=gltf.animations.map(clip=>importedMixer.clipAction(clip));
  animationSelect.replaceChildren(new Option('اختر الحركة',''));
@@ -379,12 +444,79 @@ function removeAvatarAsset(){
 }
 
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
-function reset(){Object.assign(state,DEFAULT_AVATAR_CONFIG);syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
+function reset(){applyAvatarConfig(DEFAULT_AVATAR_CONFIG);markCharacterCustom();syncControls();syncDesignControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
-document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);update();toast('تم ابتكار إطلالة جديدة')});
-document.getElementById('saveLook').addEventListener('click',()=>{const data=validateAvatarConfig(state);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.body.shoulderWidth=pick([.92,1,1.08]);state.face.shape=pick(['oval','round','square','heart','long']);state.face.noseWidth=pick([.9,1,1.1]);state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);markCharacterCustom();syncDesignControls();update();toast('تم ابتكار إطلالة جديدة')});
+document.getElementById('saveLook').addEventListener('click',()=>{const selected=getCharacterPreset(document.getElementById('characterPreset')?.value);const data=createCharacterDocument(state,selected||{id:'custom',name:'شخصيتي المخصصة',description:'شخصية مخصصة أنشأها المستخدم.',tags:['custom']});const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+const DESIGN_CONTROL_DEFS={
+ body:[
+  ['height','طول الجسم',.8,1.2,.01],['shoulderWidth','عرض الكتفين',.7,1.35,.01],['torsoLength','طول الجذع',.8,1.2,.01],
+  ['bodyDepth','عمق الجسم',.75,1.3,.01],['waistWidth','عرض الخصر',.7,1.35,.01],['hipWidth','عرض الوركين',.7,1.4,.01],
+  ['armLength','طول الذراعين',.8,1.2,.01],['legLength','طول الساقين',.8,1.2,.01],['headScale','حجم الرأس',.8,1.2,.01],['neckLength','طول الرقبة',.7,1.3,.01]
+ ],
+ face:[
+  ['shape','شكل الوجه',['oval','round','square','heart','long']],['width','عرض الوجه',.75,1.25,.01],['height','ارتفاع الوجه',.8,1.2,.01],
+  ['cheekboneWidth','عرض عظام الخد',.75,1.3,.01],['jawWidth','عرض الفك',.7,1.3,.01],['chinWidth','عرض الذقن',.65,1.35,.01],
+  ['noseBridgeHeight','ارتفاع جسر الأنف',.65,1.35,.01],['noseLength','طول الأنف',.7,1.3,.01],['noseWidth','عرض الأنف',.65,1.35,.01],
+  ['noseTip','حجم طرف الأنف',.7,1.3,.01],['earSize','حجم الأذنين',.7,1.3,.01],['earProtrusion','بروز الأذنين',.5,1.5,.01],['earAngle','زاوية الأذنين',-25,25,1]
+ ],
+ hairDetails:[
+  ['volume','حجم الشعر',.5,1.6,.01],['density','كثافة الشعر',.5,1.5,.01],['fringe','الغرة',0,1,.01],
+  ['part','فرق الشعر',['center','left','right','none']],['curl','درجة التجعد',0,1,.01],['sideburn','السوالف',0,1,.01],['length','طول الشعر',.5,1.8,.01]
+ ],
+ clothing:[
+  ['fit','قَصّة الملابس',['slim','regular','loose','oversized']],['sleeveLength','طول الأكمام',.5,1.3,.01],
+  ['robeLength','طول الرداء',.7,1.3,.01],['collarHeight','ارتفاع الياقة',.5,1.5,.01],['embroidery','كثافة التطريز',0,1,.01],
+  ['trimColor','لون الزخرفة','color'],['belt','الحزام','boolean'],['layer','طبقات اللباس',['single','inner-outer','ceremonial']]
+ ]
+};
+const DESIGN_LABELS={oval:'بيضاوي',round:'مستدير',square:'مربع',heart:'قلبي',long:'طويل',center:'وسط',left:'يسار',right:'يمين',none:'بدون',slim:'ضيق',regular:'عادي',loose:'واسع',oversized:'فضفاض','inner-outer':'داخلي وخارجي',ceremonial:'احتفالي',single:'طبقة واحدة'};
+function setDesignValue(section,key,value){state[section][key]=value;update()}
+function buildDesignControls(){
+ for(const [section,definitions] of Object.entries(DESIGN_CONTROL_DEFS)){
+  const container=document.getElementById(section+'DesignControls');if(!container)continue;container.replaceChildren();
+  for(const [key,label,minOrOptions,max,step] of definitions){
+   const field=document.createElement('div');field.className='design-control';
+   const id='design-'+section+'-'+key;const caption=document.createElement('label');caption.htmlFor=id;caption.textContent=label;
+   let input;
+   if(Array.isArray(minOrOptions)){
+    input=document.createElement('select');for(const value of minOrOptions){const option=document.createElement('option');option.value=value;option.textContent=DESIGN_LABELS[value]||value;input.append(option)}
+   }else if(minOrOptions==='color'){
+    input=document.createElement('input');input.type='color';
+   }else if(minOrOptions==='boolean'){
+    input=document.createElement('input');input.type='checkbox';
+   }else{
+    input=document.createElement('input');input.type='range';input.min=String(minOrOptions);input.max=String(max);input.step=String(step);
+   }
+   input.id=id;
+   const output=document.createElement('output');output.textContent='';
+   const eventName=input.type==='range'?'input':'change';
+   input.addEventListener(eventName,()=>{
+    markCharacterCustom();const value=input.type==='checkbox'?input.checked:input.type==='range'?Number(input.value):input.value;
+    state[section][key]=value;if(output)output.textContent=input.type==='range'?value.toFixed(2):'';
+    update();
+   });
+   field.append(caption,input,output);container.append(field);
+  }
+ }
+ syncDesignControls();
+}
+function syncDesignControls(){
+ for(const [section,definitions] of Object.entries(DESIGN_CONTROL_DEFS)){
+  for(const [key] of definitions){
+   const input=document.getElementById('design-'+section+'-'+key);if(!input)continue;
+   const value=state[section][key];
+   if(input.type==='checkbox')input.checked=value;else input.value=String(value);
+   const output=input.parentElement.querySelector('output');if(output)output.textContent=input.type==='range'?Number(value).toFixed(2):'';
+  }
+ }
+}
+buildDesignControls();
+
+const characterPreset=document.getElementById('characterPreset');
+if(characterPreset){for(const item of CHARACTER_CATALOG.characters){const option=document.createElement('option');option.value=item.id;option.textContent=item.name+' — '+item.description;characterPreset.appendChild(option)}characterPreset.addEventListener('change',()=>{if(!characterPreset.value)return;try{const preset=getCharacterPreset(characterPreset.value);applyAvatarConfig(preset.config);syncControls();syncDesignControls();update();toast('تم تطبيق تصميم '+preset.name)}catch(error){console.error(error);toast('تعذر تطبيق تصميم الشخصية')}})}
 const importInput=document.getElementById('importLookFile');
 document.getElementById('importLook').addEventListener('click',()=>importInput.click());
 importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
-try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreLook(JSON.parse(saved))}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY)}
+try{const saved=localStorage.getItem(STORAGE_KEY)||localStorage.getItem('arcode-persona:look:v1');if(saved)restoreLook(JSON.parse(saved));localStorage.removeItem('arcode-persona:look:v1')}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY);localStorage.removeItem('arcode-persona:look:v1')}
 window.addEventListener('beforeunload',()=>{renderer.dispose();disposeImportedAvatar();scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.dispose()}})});

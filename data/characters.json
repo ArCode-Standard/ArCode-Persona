@@ -1,0 +1,410 @@
+{
+  "schemaVersion": 2,
+  "characters": [
+    {
+      "id": "atlas-scholar",
+      "name": "باحث الأطلس",
+      "description": "مظهر يومي مغربي بجلابة خضراء",
+      "tags": [
+        "moroccan",
+        "male-style",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#b97850",
+        "hair": "#241b19",
+        "hairStyle": "short",
+        "cloth": "#176b60",
+        "outfit": "djellaba",
+        "headwear": "none",
+        "expression": "neutral",
+        "eyes": "#38251e",
+        "accessory": "none",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1.02,
+          "shoulderWidth": 1.04,
+          "torsoLength": 1.01,
+          "bodyDepth": 1,
+          "waistWidth": 0.98,
+          "hipWidth": 1,
+          "armLength": 1,
+          "legLength": 1.02,
+          "headScale": 0.98,
+          "neckLength": 1
+        },
+        "face": {
+          "shape": "oval",
+          "width": 0.98,
+          "height": 1,
+          "cheekboneWidth": 1.02,
+          "jawWidth": 0.96,
+          "chinWidth": 0.95,
+          "noseBridgeHeight": 1,
+          "noseLength": 1,
+          "noseWidth": 0.96,
+          "noseTip": 1,
+          "earSize": 0.95,
+          "earProtrusion": 1,
+          "earAngle": 0
+        },
+        "hairDetails": {
+          "volume": 1,
+          "density": 1,
+          "fringe": 0.2,
+          "part": "left",
+          "curl": 0.25,
+          "sideburn": 0.55,
+          "length": 1
+        },
+        "clothing": {
+          "fit": "regular",
+          "sleeveLength": 1,
+          "robeLength": 1.05,
+          "collarHeight": 1.1,
+          "embroidery": 0.75,
+          "trimColor": "#c7a45e",
+          "belt": false,
+          "layer": "single"
+        }
+      }
+    },
+    {
+      "id": "fes-craftsman",
+      "name": "صانع فاسي",
+      "description": "جلابة داكنة وطربوش تقليدي",
+      "tags": [
+        "fes",
+        "craft",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#8e573d",
+        "hair": "#241b19",
+        "hairStyle": "short",
+        "cloth": "#172b50",
+        "outfit": "djellaba",
+        "headwear": "fez",
+        "expression": "smile",
+        "eyes": "#38251e",
+        "accessory": "none",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1.04,
+          "shoulderWidth": 1.08,
+          "torsoLength": 1,
+          "bodyDepth": 1.04,
+          "waistWidth": 1,
+          "hipWidth": 1.02,
+          "armLength": 1.02,
+          "legLength": 1.03,
+          "headScale": 0.97,
+          "neckLength": 0.98
+        },
+        "face": {
+          "shape": "square",
+          "width": 1.04,
+          "height": 0.98,
+          "cheekboneWidth": 1.04,
+          "jawWidth": 1.12,
+          "chinWidth": 1.08,
+          "noseBridgeHeight": 1.05,
+          "noseLength": 1,
+          "noseWidth": 1.04,
+          "noseTip": 1.02,
+          "earSize": 1,
+          "earProtrusion": 1,
+          "earAngle": 2
+        },
+        "hairDetails": {
+          "volume": 0.9,
+          "density": 1,
+          "fringe": 0.1,
+          "part": "none",
+          "curl": 0.2,
+          "sideburn": 0.8,
+          "length": 0.8
+        },
+        "clothing": {
+          "fit": "loose",
+          "sleeveLength": 1.04,
+          "robeLength": 1.08,
+          "collarHeight": 1.2,
+          "embroidery": 0.55,
+          "trimColor": "#c7a45e",
+          "belt": false,
+          "layer": "single"
+        }
+      }
+    },
+    {
+      "id": "royal-caftan",
+      "name": "أناقة القفطان",
+      "description": "قفطان عنابي بلمسات ذهبية",
+      "tags": [
+        "caftan",
+        "formal",
+        "heritage"
+      ],
+      "config": {
+        "skin": "#c98d70",
+        "hair": "#241b19",
+        "hairStyle": "long",
+        "cloth": "#873f49",
+        "outfit": "caftan",
+        "headwear": "none",
+        "expression": "smile",
+        "eyes": "#38251e",
+        "accessory": "earring",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1,
+          "shoulderWidth": 0.96,
+          "torsoLength": 1,
+          "bodyDepth": 0.96,
+          "waistWidth": 0.92,
+          "hipWidth": 1,
+          "armLength": 1,
+          "legLength": 1,
+          "headScale": 1,
+          "neckLength": 1.02
+        },
+        "face": {
+          "shape": "heart",
+          "width": 0.98,
+          "height": 1,
+          "cheekboneWidth": 1.08,
+          "jawWidth": 0.86,
+          "chinWidth": 0.82,
+          "noseBridgeHeight": 0.98,
+          "noseLength": 0.94,
+          "noseWidth": 0.9,
+          "noseTip": 0.98,
+          "earSize": 0.94,
+          "earProtrusion": 1,
+          "earAngle": 0
+        },
+        "hairDetails": {
+          "volume": 1.2,
+          "density": 1.1,
+          "fringe": 0.45,
+          "part": "center",
+          "curl": 0.15,
+          "sideburn": 0.2,
+          "length": 1.25
+        },
+        "clothing": {
+          "fit": "slim",
+          "sleeveLength": 0.98,
+          "robeLength": 1,
+          "collarHeight": 1.25,
+          "embroidery": 0.95,
+          "trimColor": "#d8b66b",
+          "belt": true,
+          "layer": "ceremonial"
+        }
+      }
+    },
+    {
+      "id": "takchita-evening",
+      "name": "تكشيطة المناسبات",
+      "description": "تكشيطة عاجية بإطلالة احتفالية",
+      "tags": [
+        "takchita",
+        "formal"
+      ],
+      "config": {
+        "skin": "#e0a77d",
+        "hair": "#57352a",
+        "hairStyle": "long",
+        "cloth": "#e8dfce",
+        "outfit": "takchita",
+        "headwear": "none",
+        "expression": "smile",
+        "eyes": "#92704b",
+        "accessory": "earring",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1,
+          "shoulderWidth": 0.98,
+          "torsoLength": 1.02,
+          "bodyDepth": 1,
+          "waistWidth": 0.94,
+          "hipWidth": 1.03,
+          "armLength": 1,
+          "legLength": 1,
+          "headScale": 1.02,
+          "neckLength": 1
+        },
+        "face": {
+          "shape": "oval",
+          "width": 1,
+          "height": 1.02,
+          "cheekboneWidth": 1.03,
+          "jawWidth": 0.9,
+          "chinWidth": 0.9,
+          "noseBridgeHeight": 1,
+          "noseLength": 0.96,
+          "noseWidth": 0.92,
+          "noseTip": 1,
+          "earSize": 0.95,
+          "earProtrusion": 0.95,
+          "earAngle": 0
+        },
+        "hairDetails": {
+          "volume": 1.25,
+          "density": 1.15,
+          "fringe": 0.55,
+          "part": "right",
+          "curl": 0.35,
+          "sideburn": 0.2,
+          "length": 1.3
+        },
+        "clothing": {
+          "fit": "regular",
+          "sleeveLength": 1,
+          "robeLength": 1.04,
+          "collarHeight": 1.2,
+          "embroidery": 1,
+          "trimColor": "#bfa16a",
+          "belt": true,
+          "layer": "ceremonial"
+        }
+      }
+    },
+    {
+      "id": "modern-urban",
+      "name": "عصري حضري",
+      "description": "ملابس معاصرة بألوان هادئة",
+      "tags": [
+        "modern",
+        "urban"
+      ],
+      "config": {
+        "skin": "#b97850",
+        "hair": "#57352a",
+        "hairStyle": "curly",
+        "cloth": "#172b50",
+        "outfit": "modern",
+        "headwear": "none",
+        "expression": "neutral",
+        "eyes": "#55718c",
+        "accessory": "glasses",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1.03,
+          "shoulderWidth": 1.02,
+          "torsoLength": 1,
+          "bodyDepth": 1,
+          "waistWidth": 1,
+          "hipWidth": 1,
+          "armLength": 1.02,
+          "legLength": 1.03,
+          "headScale": 0.98,
+          "neckLength": 1
+        },
+        "face": {
+          "shape": "long",
+          "width": 0.94,
+          "height": 1.08,
+          "cheekboneWidth": 0.96,
+          "jawWidth": 0.94,
+          "chinWidth": 0.9,
+          "noseBridgeHeight": 1.02,
+          "noseLength": 1.08,
+          "noseWidth": 0.9,
+          "noseTip": 1,
+          "earSize": 0.95,
+          "earProtrusion": 1,
+          "earAngle": 0
+        },
+        "hairDetails": {
+          "volume": 1.15,
+          "density": 1,
+          "fringe": 0.25,
+          "part": "left",
+          "curl": 0.8,
+          "sideburn": 0.45,
+          "length": 0.85
+        },
+        "clothing": {
+          "fit": "regular",
+          "sleeveLength": 1,
+          "robeLength": 0.98,
+          "collarHeight": 0.9,
+          "embroidery": 0.25,
+          "trimColor": "#b7c1b5",
+          "belt": false,
+          "layer": "single"
+        }
+      }
+    },
+    {
+      "id": "souss-warmth",
+      "name": "دفء سوس",
+      "description": "ألوان ترابية مستوحاة من الجنوب",
+      "tags": [
+        "souss",
+        "regional-inspiration"
+      ],
+      "config": {
+        "skin": "#8e573d",
+        "hair": "#241b19",
+        "hairStyle": "curly",
+        "cloth": "#d1b16d",
+        "outfit": "djellaba",
+        "headwear": "hood",
+        "expression": "smile",
+        "eyes": "#92704b",
+        "accessory": "scarf",
+        "schemaVersion": 2,
+        "body": {
+          "height": 1.04,
+          "shoulderWidth": 1.06,
+          "torsoLength": 1.02,
+          "bodyDepth": 1.05,
+          "waistWidth": 1.04,
+          "hipWidth": 1.08,
+          "armLength": 1.02,
+          "legLength": 1.02,
+          "headScale": 1,
+          "neckLength": 0.96
+        },
+        "face": {
+          "shape": "round",
+          "width": 1.08,
+          "height": 0.96,
+          "cheekboneWidth": 1.08,
+          "jawWidth": 1.02,
+          "chinWidth": 1.05,
+          "noseBridgeHeight": 0.98,
+          "noseLength": 0.94,
+          "noseWidth": 1.08,
+          "noseTip": 1.05,
+          "earSize": 1.04,
+          "earProtrusion": 1.05,
+          "earAngle": 4
+        },
+        "hairDetails": {
+          "volume": 1.2,
+          "density": 1.15,
+          "fringe": 0.15,
+          "part": "none",
+          "curl": 0.9,
+          "sideburn": 0.7,
+          "length": 0.9
+        },
+        "clothing": {
+          "fit": "loose",
+          "sleeveLength": 1.08,
+          "robeLength": 1.1,
+          "collarHeight": 1.1,
+          "embroidery": 0.7,
+          "trimColor": "#d0ad68",
+          "belt": false,
+          "layer": "single"
+        }
+      }
+    }
+  ]
+}

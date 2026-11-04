@@ -10,6 +10,8 @@
 
 ## Phase 1 — High-quality character system
 - [x] Establish a local GLB 2.0 import path with size, header, version, and external-resource checks.
+- [x] Define versioned body, face, hair, and clothing proportion properties in JSON.
+- [x] Connect procedural geometry and compatible imported GLB morph/bone targets to design properties.
 - [ ] Approve stylized visual direction and character proportions.
 - [ ] Create production base mesh and rig.
 - [x] Expose imported GLB facial morph targets through runtime sliders.
@@ -32,7 +34,8 @@
 - [x] Import a local GLB avatar into the live preview.
 - [x] Add single-piece local garment import with bone-name rig rebinding.
 - [ ] Add multi-piece outfit composition, layering, and clipping QA.
-- [ ] Preset library and outfit slots.
+- [x] Add a JSON character preset library with live design controls.
+- [ ] Multi-slot outfit composition and authored garment asset layers.
 - [ ] Color/material controls with accessible names.
 - [ ] Undo/redo and reset scopes.
 - [ ] Visual snapshot and shareable export.

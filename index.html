@@ -42,6 +42,7 @@
           </div>
 
           <div class="tab-content active" id="appearance">
+            <div class="field-group"><label for="characterPreset">قوالب الشخصيات JSON</label><select id="characterPreset"><option value="">اختر شخصية جاهزة…</option></select><small class="field-hint">قوالب قابلة للتعديل والتصدير كملفات شخصية مستقلة.</small></div>
             <div class="field-group"><label>لون البشرة</label><div class="swatches" id="skinOptions">
               <button class="swatch selected" data-value="#b97850" style="--swatch:#b97850" aria-label="قمحي"></button>
               <button class="swatch" data-value="#e0a77d" style="--swatch:#e0a77d" aria-label="فاتح"></button>
@@ -56,6 +57,10 @@
               <button class="swatch" data-value="#b78b53" style="--swatch:#b78b53" aria-label="عسلي"></button>
               <button class="swatch" data-value="#b8b4aa" style="--swatch:#b8b4aa" aria-label="رمادي"></button>
             </div></div>
+            <div class="field-group design-control-group"><label>نِسَب الجسم</label><div id="bodyDesignControls" class="design-controls"></div></div>
+            <div class="field-group design-control-group"><label>بنية الوجه والأنف والفك والأذنين</label><div id="faceDesignControls" class="design-controls"></div></div>
+            <div class="field-group design-control-group"><label>تفاصيل الشعر</label><div id="hairDetailsDesignControls" class="design-controls"></div></div>
+            <div class="field-group design-control-group"><label>تفاصيل الملابس</label><div id="clothingDesignControls" class="design-controls"></div></div>
             <div class="field-group"><label for="expression">التعبير</label><select id="expression"><option value="smile">ابتسامة هادئة</option><option value="neutral">طبيعي</option><option value="surprised">متفاجئ</option></select></div>
           </div>
 
