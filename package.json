@@ -1,0 +1,22 @@
+{
+  "name": "arcode-persona",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent 3D avatar creation studio with Moroccan-inspired wardrobe direction.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "vite": "6.0.5"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
