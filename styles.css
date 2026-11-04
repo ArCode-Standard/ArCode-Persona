@@ -6,3 +6,4 @@
 #avatarAnimation{max-width:145px;padding:8px 9px;font-size:10px}#toggleAvatarAnimation:disabled{opacity:.5;cursor:not-allowed}.view-actions{min-width:0}
 
 .morph-editor[hidden]{display:none}.morph-control{display:grid;grid-template-columns:1fr minmax(90px,1.3fr) 38px;gap:8px;align-items:center;margin:10px 0}.morph-control label{font-size:11px;color:#d5ded6}.morph-control input{width:100%;accent-color:#a7c59b}.morph-control output{font:10px Manrope;color:#a9b7ae;text-align:left}
+\n.morph-presets{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px}.morph-presets button{border:1px solid #405149;background:#1b2b24;color:#cbd8cc;border-radius:7px;padding:6px 9px;font:10px var(--font);cursor:pointer}.morph-presets button:hover,.morph-presets button:focus-visible{border-color:var(--green);color:#f3f1e9;outline:none}\n
