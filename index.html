@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b1b">
+  <meta name="description" content="ArCode Persona — استوديو إنشاء الشخصيات الرقمية ثلاثية الأبعاد.">
+  <title>ArCode Persona — Avatar Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="ArCode Persona home">
+        <span class="brand-mark">A<span>✳</span></span>
+        <span><strong>ArCode</strong><small>PERSONA STUDIO</small></span>
+      </a>
+      <div class="topbar-center"><span class="live-dot"></span> استوديو الشخصيات <span class="version">PREVIEW 0.1</span></div>
+      <button id="resetTop" class="quiet-button">إعادة التعيين ↺</button>
+    </header>
+
+    <main class="workspace">
+      <section class="intro">
+        <div class="eyebrow"><span></span> YOUR IDENTITY, YOUR PERSONA</div>
+        <h1>اصنع شخصية <em>تشبهك.</em></h1>
+        <p>مساحة إبداعية لبناء هويتك الرقمية. ابدأ بملامحك، اختر أسلوبك، وأضف لمستك المغربية الخاصة.</p>
+      </section>
+
+      <section class="studio-grid">
+        <aside class="editor panel">
+          <div class="panel-heading">
+            <div><span class="step-label">01 / PERSONALIZE</span><h2>تخصيص الشخصية</h2></div>
+            <span class="sliders-icon">☷</span>
+          </div>
+          <div class="tabs" role="tablist" aria-label="أقسام التخصيص">
+            <button class="tab active" data-tab="appearance">المظهر</button>
+            <button class="tab" data-tab="wardrobe">الملابس</button>
+            <button class="tab" data-tab="details">التفاصيل</button>
+          </div>
+
+          <div class="tab-content active" id="appearance">
+            <div class="field-group"><label>لون البشرة</label><div class="swatches" id="skinOptions">
+              <button class="swatch selected" data-value="#b97850" style="--swatch:#b97850" aria-label="قمحي"></button>
+              <button class="swatch" data-value="#e0a77d" style="--swatch:#e0a77d" aria-label="فاتح"></button>
+              <button class="swatch" data-value="#8e573d" style="--swatch:#8e573d" aria-label="برونزي"></button>
+              <button class="swatch" data-value="#603b30" style="--swatch:#603b30" aria-label="داكن"></button>
+              <button class="swatch" data-value="#c98d70" style="--swatch:#c98d70" aria-label="وردي دافئ"></button>
+            </div></div>
+            <div class="field-group"><label for="hairStyle">تسريحة الشعر</label><select id="hairStyle"><option value="short">قصير كلاسيكي</option><option value="curly">مجعد</option><option value="long">طويل</option><option value="shaved">محلوق</option></select></div>
+            <div class="field-group"><label>لون الشعر</label><div class="swatches" id="hairOptions">
+              <button class="swatch selected" data-value="#241b19" style="--swatch:#241b19" aria-label="أسود"></button>
+              <button class="swatch" data-value="#57352a" style="--swatch:#57352a" aria-label="بني"></button>
+              <button class="swatch" data-value="#b78b53" style="--swatch:#b78b53" aria-label="عسلي"></button>
+              <button class="swatch" data-value="#b8b4aa" style="--swatch:#b8b4aa" aria-label="رمادي"></button>
+            </div></div>
+            <div class="field-group"><label for="expression">التعبير</label><select id="expression"><option value="smile">ابتسامة هادئة</option><option value="neutral">طبيعي</option><option value="surprised">متفاجئ</option></select></div>
+          </div>
+
+          <div class="tab-content" id="wardrobe">
+            <div class="field-group"><label>الأسلوب المغربي</label><div class="choice-grid" id="outfitOptions">
+              <button class="choice selected" data-value="djellaba"><span class="choice-art">◈</span><strong>جلابة</strong><small>تراثي أنيق</small></button>
+              <button class="choice" data-value="caftan"><span class="choice-art">✧</span><strong>قفطان</strong><small>لمسة ملكية</small></button>
+              <button class="choice" data-value="modern"><span class="choice-art">▱</span><strong>عصري</strong><small>كاجوال</small></button>
+              <button class="choice" data-value="takchita"><span class="choice-art">❖</span><strong>تكشيطة</strong><small>مناسبات</small></button>
+            </div></div>
+            <div class="field-group"><label>لون اللباس</label><div class="swatches" id="clothOptions">
+              <button class="swatch selected" data-value="#176b60" style="--swatch:#176b60" aria-label="أخضر زمردي"></button>
+              <button class="swatch" data-value="#172b50" style="--swatch:#172b50" aria-label="أزرق"></button>
+              <button class="swatch" data-value="#873f49" style="--swatch:#873f49" aria-label="عنابي"></button>
+              <button class="swatch" data-value="#d1b16d" style="--swatch:#d1b16d" aria-label="ذهبي"></button>
+              <button class="swatch" data-value="#e8dfce" style="--swatch:#e8dfce" aria-label="عاجي"></button>
+            </div></div>
+            <div class="field-group"><label for="headwear">غطاء الرأس</label><select id="headwear"><option value="none">بدون</option><option value="fez">طربوش</option><option value="hood">قُبّ</option></select></div>
+          </div>
+
+          <div class="tab-content" id="details">
+            <div class="field-group"><label for="eyes">لون العينين</label><select id="eyes"><option value="#38251e">بني داكن</option><option value="#557b68">أخضر</option><option value="#55718c">أزرق</option><option value="#92704b">عسلي</option></select></div>
+            <div class="field-group"><label for="accessory">الإكسسوار</label><select id="accessory"><option value="none">بدون</option><option value="glasses">نظارات</option><option value="earring">قرط</option><option value="scarf">وشاح</option></select></div>
+            <div class="note-card"><span>✳</span><div><strong>تفاصيل من المغرب</strong><p>الأزياء والزخارف هنا نقطة بداية قابلة للتوسع بمراجع ثقافية موثقة ومراجعة فنية.</p></div></div>
+          </div>
+
+          <div class="editor-footer"><button id="randomize" class="secondary-button">✦ إلهام عشوائي</button><button id="saveLook" class="primary-button">حفظ الإطلالة <span>↗</span></button></div>
+        </aside>
+
+        <section class="preview-column">
+          <div class="preview panel">
+            <div class="preview-head"><div><span class="step-label">02 / LIVE PREVIEW</span><h2>شخصيتك الرقمية</h2></div><span class="status-pill"><i></i> معاينة مباشرة</span></div>
+            <div class="canvas-wrap" id="canvasWrap">
+              <div class="canvas-glow"></div><div class="canvas-caption">اسحب للتدوير · عجلة الفأرة للتقريب</div>
+              <div class="loading" id="loading">يتم تجهيز الشخصية ثلاثية الأبعاد…</div>
+            </div>
+            <div class="preview-controls">
+              <button id="rotate" class="control-button active"><span>⟳</span> دوران تلقائي</button>
+              <div class="view-actions"><button id="frontView" class="icon-button" aria-label="الواجهة الأمامية">◎</button><button id="resetView" class="icon-button" aria-label="إعادة زاوية العرض">↺</button></div>
+            </div>
+          </div>
+          <div class="bottom-cards">
+            <div class="mini-card"><span class="mini-icon">◉</span><div><strong>هوية فريدة</strong><small>تفاصيل تعبّر عنك</small></div></div>
+            <div class="mini-card"><span class="mini-icon">✧</span><div><strong>تراث متجدد</strong><small>إلهام من الثقافة المغربية</small></div></div>
+            <div class="mini-card"><span class="mini-icon">◌</span><div><strong>ثلاثي الأبعاد</strong><small>من كل الزوايا</small></div></div>
+          </div>
+        </section>
+      </section>
+      <footer><span>ARCODE PERSONA</span><span>استوديو تجريبي — الأصول ثلاثية الأبعاد قيد التطوير</span><span>© 2026 ARCODE</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
