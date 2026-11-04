@@ -8,7 +8,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test"
+    "test": "node --test",
+    "validate:avatar": "node tools/validate-avatar-glb.mjs",
+    "validate:garment": "node tools/validate-avatar-glb.mjs --garment"
   },
   "dependencies": {
     "three": "0.170.0"
