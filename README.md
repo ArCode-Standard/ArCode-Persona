@@ -58,7 +58,9 @@ npm run preview
 - Initial appearance and wardrobe controls.
 - Expression and accessory selectors.
 - Validated JSON export and import for a configured look.
-- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.\n- Automatic local browser persistence with no account or server storage.\n- Restore saved looks after reloading the studio.
+- Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.
+- Automatic local browser persistence with no account or server storage.
+- Restore saved looks after reloading the studio.
 - Responsive Arabic RTL interface.
 
 ## Important limitations
