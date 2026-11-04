@@ -47,7 +47,7 @@ npm run preview
 | `test/` | Unit tests for the configuration contract |
 | `docs/TECHNICAL_ARCHITECTURE.md` | System boundaries and rendering architecture |
 | `docs/MOROCCAN_WARDROBE_CATALOG.md` | Moroccan clothing research and design direction |
-| `docs/AVATAR_ASSET_PIPELINE.md` | Production 3D asset requirements |
+| `docs/AVATAR_ASSET_PIPELINE.md` | Production 3D asset authoring and validation pipeline |\n| `tools/blender/export_skinned_asset.py` | Blender GLB exporter with provenance manifest |\n| `tools/validate-avatar-glb.mjs` | GLB rig/morph/animation profile validator |
 | `docs/PRIVACY_AND_SECURITY.md` | Data handling and future server security principles |
 | `docs/QUALITY_GATES.md` | CI and release acceptance criteria |
 | `docs/ROADMAP_EXECUTION.md` | Phased execution plan |
@@ -59,15 +59,16 @@ npm run preview
 - Expression and accessory selectors.
 - Validated JSON export and import for a configured look.
 - Local GLB 2.0 avatar import with a 32 MB limit and rejection of external asset URLs.
+- Local import of one skinned garment GLB, rebound to the imported avatar by exact skeleton bone names.
 - Playback and selection of animation clips embedded in imported GLB avatars.
 - Runtime sliders for facial morph targets exposed by imported GLB models (up to 24 controls).
 - Automatic local browser persistence with no account or server storage.
 - Restore saved looks after reloading the studio.
-- Responsive Arabic RTL interface.
+- Responsive Arabic RTL interface.\n- Blender export helper and GLB production-profile validation for skinned avatars and garments.
 
 ## Important limitations
 
-The built-in preview still uses procedural geometric shapes. Users can import a self-contained GLB 2.0 avatar locally (maximum 32 MB); imported assets are not uploaded. Full character topology, custom facial blendshape authoring and preset management, facial blendshapes, realistic cloth behavior, detailed garment meshes, editing imported model materials from the UI, and browser E2E tests are not yet implemented. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
+The built-in preview still uses procedural geometric shapes. Users can import a self-contained GLB 2.0 avatar locally (maximum 32 MB); imported assets are not uploaded. Production human topology, finished rigged character assets, facial shape-key authoring, authored Moroccan garment meshes, multi-piece outfit composition, realistic cloth behavior, editing imported model materials from the UI, and browser E2E tests are not yet implemented. The current garment loader is a single-piece rig-binding foundation and requires a compatible garment asset. The new Blender exporter and GLB validator provide production asset tooling, not the missing art assets. See the [execution roadmap](docs/ROADMAP_EXECUTION.md).
 
 ## Independence and privacy
 
