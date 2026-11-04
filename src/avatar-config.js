@@ -71,7 +71,7 @@ const RANGES = {
 function mergeDesign(source = {}) {
   if (!source || typeof source !== 'object' || Array.isArray(source)) throw new TypeError('Design section must be an object.');
   return Object.fromEntries(Object.entries(DESIGN_DEFAULTS).map(([section, defaults]) => {
-    const supplied = source[section] ?? {};
+    const supplied = Object.prototype.hasOwnProperty.call(source, section) ? source[section] : {};
     if (!supplied || typeof supplied !== 'object' || Array.isArray(supplied)) throw new TypeError(`Invalid ${section} design section.`);
     for (const key of Object.keys(supplied)) if (!(key in defaults)) throw new TypeError(`Unknown design property: ${section}.${key}`);
     return [section, { ...defaults, ...supplied }];
