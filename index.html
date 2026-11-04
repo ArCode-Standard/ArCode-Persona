@@ -82,7 +82,7 @@
             <div class="note-card"><span>✳</span><div><strong>تفاصيل من المغرب</strong><p>الأزياء والزخارف هنا نقطة بداية قابلة للتوسع بمراجع ثقافية موثقة ومراجعة فنية.</p></div></div>
           </div>
 
-          <div class="editor-footer"><button id="randomize" class="secondary-button">✦ إلهام عشوائي</button><button id="saveLook" class="primary-button">حفظ الإطلالة <span>↗</span></button></div>
+          <div class="editor-footer"><button id="randomize" class="secondary-button">✦ إلهام عشوائي</button><button id="importLook" class="secondary-button" type="button">استيراد</button><button id="saveLook" class="primary-button" type="button">تصدير الإطلالة <span>↗</span></button><input id="importLookFile" type="file" accept="application/json,.json" hidden></div>
         </aside>
 
         <section class="preview-column">
@@ -90,7 +90,7 @@
             <div class="preview-head"><div><span class="step-label">02 / LIVE PREVIEW</span><h2>شخصيتك الرقمية</h2></div><span class="status-pill"><i></i> معاينة مباشرة</span></div>
             <div class="canvas-wrap" id="canvasWrap">
               <div class="canvas-glow"></div><div class="canvas-caption">اسحب للتدوير · عجلة الفأرة للتقريب</div>
-              <div class="loading" id="loading">يتم تجهيز الشخصية ثلاثية الأبعاد…</div>
+              <div class="loading" id="loading" role="status" aria-live="polite">يتم تجهيز الشخصية ثلاثية الأبعاد…</div>
             </div>
             <div class="preview-controls">
               <button id="rotate" class="control-button active"><span>⟳</span> دوران تلقائي</button>
