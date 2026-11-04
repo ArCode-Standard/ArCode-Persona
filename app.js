@@ -301,7 +301,7 @@ function bindGarmentToAvatar(garmentRoot,avatarRoot){
 }
 async function importGarmentAsset(file){
  if(!importedAvatar)throw new Error('استورد شخصية GLB ذات هيكل عظمي أولاً.');
- if(!/\\.glb$/i.test(file.name))throw new Error('صيغة قطعة الملابس غير مدعومة؛ استخدم GLB.');
+ if(!/\.glb$/i.test(file.name))throw new Error('صيغة قطعة الملابس غير مدعومة؛ استخدم GLB.');
  if(file.size>MAX_GLB_BYTES)throw new Error('حجم قطعة الملابس يتجاوز الحد المسموح (32MB).');
  const buffer=await file.arrayBuffer();
  validateGlbArrayBuffer(buffer);
