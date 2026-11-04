@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DEFAULT_AVATAR_CONFIG } from './src/avatar-config.js';
+import { DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from './src/avatar-config.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
@@ -20,6 +20,8 @@ const rim=new THREE.DirectionalLight(0x9bc9b5,2.3);rim.position.set(3,3,-4);scen
 const floor=new THREE.Mesh(new THREE.CircleGeometry(2.25,64),new THREE.MeshBasicMaterial({color:0x9cb79a,transparent:true,opacity:.08}));floor.rotation.x=-Math.PI/2;floor.position.y=-1.43;scene.add(floor);
 const model=new THREE.Group();scene.add(model);
 const state={...DEFAULT_AVATAR_CONFIG};
+const STORAGE_KEY='arcode-persona:look:v1';
+let renderAvailable=true;
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -27,7 +29,7 @@ const cylinder=(parent,rt,rb,h,x,y,z,material,segments=48)=>{const m=new THREE.M
 let faceParts={};
 function curve(parent,points,material,r=.018){const path=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const mesh=new THREE.Mesh(new THREE.TubeGeometry(path,24,r,8,false),material);parent.add(mesh);return mesh}
 function build(){
- while(model.children.length) {const o=model.children.pop();o.traverse?.(n=>{n.geometry?.dispose();if(n.material&&!Array.isArray(n.material))n.material.dispose()})}
+ while(model.children.length) {const o=model.children[0];model.remove(o);o.traverse(n=>{n.geometry?.dispose();if(n.material){for(const material of (Array.isArray(n.material)?n.material:[n.material])) material.dispose()}})}
  const skin=skinMat(),hair=mat(state.hair),cloth=mat(state.cloth,.58),gold=mat('#c7a45e',.34,.68),dark=mat('#251e1a'),white=mat('#f5eee1'),eye=mat(state.eyes,.3);
  const torso=new THREE.Group();model.add(torso);
  // Robe / outfit silhouette
@@ -101,16 +103,26 @@ function build(){
 }
 build();
 function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
-new ResizeObserver(resize).observe(wrap);resize();
+if('ResizeObserver' in window) new ResizeObserver(resize).observe(wrap); else window.addEventListener('resize',resize);resize();
 let dragging=false,lastX=0,rotation=0,auto=true,zoom=7.6,clock=new THREE.Clock();
-renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;renderer.domElement.setPointerCapture(e.pointerId)});
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.button!==0)return;dragging=true;lastX=e.clientX;renderer.domElement.setPointerCapture(e.pointerId)});
 renderer.domElement.addEventListener('pointermove',e=>{if(!dragging)return;rotation+=(e.clientX-lastX)*.009;lastX=e.clientX});
 renderer.domElement.addEventListener('pointerup',()=>dragging=false);
-renderer.domElement.addEventListener('wheel',e=>{zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.004,5.4,10);camera.position.z=zoom},{passive:true});
+renderer.domElement.addEventListener('pointercancel',()=>dragging=false);
+renderer.domElement.addEventListener('lostpointercapture',()=>dragging=false);
+renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();zoom=THREE.MathUtils.clamp(zoom+e.deltaY*.004,5.4,10);camera.position.z=zoom},{passive:false});
 function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();if(auto&&!dragging)rotation+=.0025;model.rotation.y=rotation;model.position.y=Math.sin(t*1.5)*.025;model.rotation.z=Math.sin(t*.8)*.012;renderer.render(scene,camera)}
 animate();
 document.getElementById('loading').classList.add('hidden');
-function update(){build()}
+function update(){build();persistLook()}
+function persistLook(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(validateAvatarConfig(state)))}catch(error){console.warn('Unable to save persona locally:',error)}}
+function restoreLook(input){try{const config=validateAvatarConfig(input);Object.assign(state,config);syncControls();update();toast('تمت استعادة الإطلالة')}catch(error){toast('ملف الإطلالة غير صالح أو غير مدعوم');console.error(error)}}
+function syncControls(){
+ const keys={skin:'skinOptions',hair:'hairOptions',cloth:'clothOptions'};
+ for(const [key,id] of Object.entries(keys))document.querySelectorAll(`#${id} .swatch`).forEach(b=>b.classList.toggle('selected',b.dataset.value===state[key]));
+ document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.classList.toggle('selected',b.dataset.value===state.outfit));
+ for(const id of ['hairStyle','expression','headwear','eyes','accessory'])document.getElementById(id).value=state[id];
+}
 function bindSwatches(id,key){document.querySelectorAll('#'+id+' .swatch').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#'+id+' .swatch').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');state[key]=b.dataset.value;update()}))}
 bindSwatches('skinOptions','skin');bindSwatches('hairOptions','hair');bindSwatches('clothOptions','cloth');
 [['hairStyle','hairStyle'],['expression','expression'],['headwear','headwear'],['eyes','eyes'],['accessory','accessory']].forEach(([id,key])=>document.getElementById(id).addEventListener('change',e=>{state[key]=e.target.value;update()}));
@@ -120,7 +132,12 @@ document.getElementById('rotate').addEventListener('click',e=>{auto=!auto;e.curr
 document.getElementById('frontView').addEventListener('click',()=>{rotation=0;auto=false;document.getElementById('rotate').classList.remove('active')});
 document.getElementById('resetView').addEventListener('click',()=>{rotation=0;zoom=7.6;camera.position.z=zoom});
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
-function reset(){Object.assign(state,{skin:'#b97850',hair:'#241b19',hairStyle:'short',cloth:'#176b60',outfit:'djellaba',headwear:'none',expression:'smile',eyes:'#38251e',accessory:'none'});document.querySelectorAll('.swatches').forEach(g=>{g.querySelectorAll('.swatch').forEach(b=>b.classList.toggle('selected',b.dataset.value===state[g.id==='skinOptions'?'skin':g.id==='hairOptions'?'hair':'cloth']))});document.querySelectorAll('#outfitOptions .choice').forEach(b=>b.classList.toggle('selected',b.dataset.value==='djellaba'));['hairStyle','expression','headwear','eyes','accessory'].forEach(id=>{const map={hairStyle:'short',expression:'smile',headwear:'none',eyes:'#38251e',accessory:'none'};document.getElementById(id).value=map[id]});update()}
+function reset(){Object.assign(state,DEFAULT_AVATAR_CONFIG);syncControls();rotation=0;zoom=7.6;camera.position.set(0,1.45,zoom);auto=true;document.getElementById('rotate').classList.add('active');document.getElementById('rotate').innerHTML='<span>⟳</span> دوران تلقائي';update();toast('تمت إعادة الإطلالة الافتراضية')}
 document.getElementById('resetTop').addEventListener('click',reset);
 document.getElementById('randomize').addEventListener('click',()=>{const pick=a=>a[Math.floor(Math.random()*a.length)];state.skin=pick(['#b97850','#e0a77d','#8e573d','#603b30','#c98d70']);state.hair=pick(['#241b19','#57352a','#b78b53']);state.cloth=pick(['#176b60','#172b50','#873f49','#d1b16d']);state.outfit=pick(['djellaba','caftan','modern','takchita']);state.expression=pick(['smile','neutral','surprised']);update();toast('تم ابتكار إطلالة جديدة')});
-document.getElementById('saveLook').addEventListener('click',()=>{const data={schemaVersion:1,...state};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='arcode-persona-look.json';a.click();URL.revokeObjectURL(a.href);toast('تم تصدير إعدادات الشخصية')});
+document.getElementById('saveLook').addEventListener('click',()=>{const data=validateAvatarConfig(state);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='arcode-persona-look.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('تم تصدير إعدادات الشخصية')});
+const importInput=document.getElementById('importLookFile');
+document.getElementById('importLook').addEventListener('click',()=>importInput.click());
+importInput.addEventListener('change',async()=>{const file=importInput.files?.[0];if(!file)return;if(file.size>64*1024){toast('حجم ملف الإطلالة أكبر من المسموح');importInput.value='';return}try{restoreLook(JSON.parse(await file.text()))}catch(error){toast('تعذر قراءة ملف الإطلالة');console.error(error)}finally{importInput.value=''}});
+try{const saved=localStorage.getItem(STORAGE_KEY);if(saved)restoreLook(JSON.parse(saved))}catch(error){console.warn('Saved persona look could not be restored:',error);localStorage.removeItem(STORAGE_KEY)}
+window.addEventListener('beforeunload',()=>{renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of(Array.isArray(o.material)?o.material:[o.material]))m.dispose()}})});
