@@ -155,15 +155,21 @@ function update(){build();applyImportedCharacterDesign();persistLook()}
 function applyImportedCharacterDesign(){
  if(!importedAvatar)return;
  const design=state;
+ const normalizedScale=importedAvatar.userData.arcodeBaseScale||1;
+ importedAvatar.scale.set(normalizedScale,normalizedScale*design.body.height,normalizedScale);
  const targets={
   facewidth:design.face.width, headwidth:design.face.width,
+  facenarrow:2-design.face.width, headnarrow:2-design.face.width,
   faceheight:design.face.height, headheight:design.face.height,
+  faceround:design.face.shape==='round'?1:0, facesquare:design.face.shape==='square'?1:0,
+  faceheart:design.face.shape==='heart'?1:0, facelong:design.face.shape==='long'?1:0, faceoval:design.face.shape==='oval'?1:0,
   cheekwidth:design.face.cheekboneWidth, cheekbonewidth:design.face.cheekboneWidth,
+  cheeknarrow:2-design.face.cheekboneWidth,
   jawwidth:design.face.jawWidth, jawwide:design.face.jawWidth,
-  jawnarrow:2-design.face.jawWidth, chinwidth:design.face.chinWidth,
+  jawnarrow:2-design.face.jawWidth, chinwidth:design.face.chinWidth, chinnarrow:2-design.face.chinWidth,
   nosewidth:design.face.noseWidth, nosenarrow:2-design.face.noseWidth,
   noselength:design.face.noseLength, noseshort:2-design.face.noseLength,
-  nosebridgeheight:design.face.noseBridgeHeight, earsize:design.face.earSize,
+  nosebridgeheight:design.face.noseBridgeHeight, nosetip:design.face.noseTip, earsize:design.face.earSize,
   earprotrusion:design.face.earProtrusion, headscale:design.body.headScale
  };
  importedAvatar.traverse(node=>{
@@ -347,6 +353,7 @@ async function importAvatarAsset(file){
  const normalizedRoot=new THREE.Group();
  normalizedRoot.add(root);
  normalizedRoot.scale.setScalar(scale);
+ normalizedRoot.userData.arcodeBaseScale=scale;
  normalizedRoot.position.copy(center).multiplyScalar(-scale);
  disposeImportedAvatar();
  importedAvatar=normalizedRoot;
