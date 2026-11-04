@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { DEFAULT_AVATAR_CONFIG, validateAvatarConfig } from './src/avatar-config.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { validateGlbArrayBuffer, MAX_GLB_BYTES } from './src/avatar-asset.js';
+import { buildBoneRemap } from './src/garment-rig.js';
 
 const wrap=document.getElementById('canvasWrap');
 const scene=new THREE.Scene();
@@ -39,6 +40,7 @@ const STORAGE_KEY='arcode-persona:look:v1';
 const importedRoot=new THREE.Group();
 scene.add(importedRoot);
 let importedAvatar=null;
+let importedGarment=null;
 let importedMixer=null;
 let importedActions=[];
 let activeAnimationIndex=-1;
@@ -153,6 +155,14 @@ document.getElementById('rotate').addEventListener('click',e=>{auto=!auto;e.curr
 document.getElementById('frontView').addEventListener('click',()=>{rotation=0;auto=false;document.getElementById('rotate').classList.remove('active')});
 document.getElementById('resetView').addEventListener('click',()=>{rotation=0;zoom=7.6;camera.position.z=zoom});
 
+const garmentFileInput=document.getElementById('garmentAssetFile');
+document.getElementById('importGarmentAsset').addEventListener('click',()=>garmentFileInput.click());
+document.getElementById('removeGarmentAsset').addEventListener('click',()=>{clearImportedGarment();toast('تمت إزالة قطعة الملابس')});
+garmentFileInput.addEventListener('change',async()=>{
+ const file=garmentFileInput.files?.[0];
+ if(!file)return;
+ try{await importGarmentAsset(file)}catch(error){console.error('Garment import failed:',error);toast(error.message||'تعذر استيراد قطعة الملابس')}finally{garmentFileInput.value=''}
+});
 const avatarFileInput=document.getElementById('avatarAssetFile');
 document.getElementById('importAvatarAsset').addEventListener('click',()=>avatarFileInput.click());
 document.getElementById('removeAvatarAsset').addEventListener('click',removeAvatarAsset);
@@ -271,13 +281,42 @@ async function importAvatarAsset(file){
  model.visible=false;
  toast(importedActions.length?'تم تحميل الشخصية وتشغيل أول حركة':'تم تحميل نموذج GLB دون حركات مدمجة');
 }
-function disposeImportedAvatar(){
- clearAvatarAnimations();
- clearMorphControls();
- if(!importedAvatar)return;
- importedRoot.remove(importedAvatar);
+function bindGarmentToAvatar(garmentRoot,avatarRoot){
+ let avatarMesh=null;
+ avatarRoot.traverse(node=>{if(!avatarMesh&&node.isSkinnedMesh)avatarMesh=node});
+ if(!avatarMesh?.skeleton)throw new Error('الشخصية الحالية لا تحتوي على هيكل عظمي قابل لتركيب الملابس.');
+ const avatarSkeleton=avatarMesh.skeleton;
+ let skinnedCount=0;
+ garmentRoot.traverse(node=>{
+  if(!node.isSkinnedMesh)return;
+  const sourceBones=node.skeleton?.bones||[];
+  const remap=buildBoneRemap(sourceBones.map(bone=>bone.name),avatarSkeleton.bones.map(bone=>bone.name));
+  const bones=remap.map(index=>avatarSkeleton.bones[index]);
+  const inverses=remap.map(index=>avatarSkeleton.boneInverses[index].clone());
+  node.bind(new THREE.Skeleton(bones,inverses),node.bindMatrix.clone());
+  skinnedCount++;
+ });
+ if(!skinnedCount)throw new Error('ملف الملابس لا يحتوي على Mesh مرتبط بـ Armature.');
+ return skinnedCount;
+}
+async function importGarmentAsset(file){
+ if(!importedAvatar)throw new Error('استورد شخصية GLB ذات هيكل عظمي أولاً.');
+ if(!/\\.glb$/i.test(file.name))throw new Error('صيغة قطعة الملابس غير مدعومة؛ استخدم GLB.');
+ if(file.size>MAX_GLB_BYTES)throw new Error('حجم قطعة الملابس يتجاوز الحد المسموح (32MB).');
+ const buffer=await file.arrayBuffer();
+ validateGlbArrayBuffer(buffer);
+ const loader=new GLTFLoader();
+ const gltf=await loader.parseAsync(buffer,'');
+ if(!gltf.scene)throw new Error('ملف الملابس لا يحتوي على مشهد قابل للعرض.');
+ const count=bindGarmentToAvatar(gltf.scene,importedAvatar);
+ clearImportedGarment();
+ importedAvatar.add(gltf.scene);
+ importedGarment=gltf.scene;
+ toast('تم تركيب قطعة الملابس وربط '+count+' أجزاء بالهيكل العظمي');
+}
+function disposeObjectResources(root){
  const disposedTextures=new Set();
- importedAvatar.traverse(node=>{
+ root.traverse(node=>{
   node.geometry?.dispose();
   if(node.material)for(const material of(Array.isArray(node.material)?node.material:[node.material])){
    for(const value of Object.values(material)){
@@ -287,7 +326,21 @@ function disposeImportedAvatar(){
   }
   if(node.skeleton?.boneTexture)node.skeleton.boneTexture.dispose();
  });
+}
+function clearImportedGarment(){
+ if(!importedGarment)return;
+ importedAvatar?.remove(importedGarment);
+ disposeObjectResources(importedGarment);
+ importedGarment=null;
+}
+function disposeImportedAvatar(){
+ clearAvatarAnimations();
+ clearMorphControls();
+ if(!importedAvatar)return;
+ importedRoot.remove(importedAvatar);
+ disposeObjectResources(importedAvatar);
  importedAvatar=null;
+ importedGarment=null;
 }
 function removeAvatarAsset(){
  disposeImportedAvatar();
