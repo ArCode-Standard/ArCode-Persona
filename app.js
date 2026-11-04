@@ -42,6 +42,7 @@ let importedAvatar=null;
 let importedMixer=null;
 let importedActions=[];
 let activeAnimationIndex=-1;
+let morphBindings=new Map();
 const mat=(color,roughness=.72,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const skinMat=()=>mat(state.skin);
 const sphere=(parent,x,y,z,sx,sy,sz,material,segments=32)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,segments,segments),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m};
@@ -187,6 +188,45 @@ function toggleAvatarAnimation(){
   animationToggle.setAttribute('aria-pressed','false');
  }
 }
+function clearMorphControls(){
+ morphBindings.clear();
+ const container=document.getElementById('morphControls');
+ container.replaceChildren();
+ document.getElementById('morphEditor').hidden=true;
+}
+const MORPH_LABELS={
+ jawOpen:'فتح الفك',mouthSmileLeft:'ابتسامة يسار',mouthSmileRight:'ابتسامة يمين',
+ eyeBlinkLeft:'إغلاق العين اليسرى',eyeBlinkRight:'إغلاق العين اليمنى',
+ browInnerUp:'رفع الحاجبين',browDownLeft:'خفض الحاجب الأيسر',browDownRight:'خفض الحاجب الأيمن',
+ mouthFunnel:'تدوير الشفاه',mouthPucker:'ضم الشفاه',mouthFrownLeft:'عبوس يسار',mouthFrownRight:'عبوس يمين',
+ cheekSquintLeft:'رفع الخدين',cheekSquintRight:'رفع الخدين'
+};
+function buildMorphControls(root){
+ clearMorphControls();
+ root.traverse(mesh=>{
+  if(!mesh.isMesh||!mesh.morphTargetDictionary||!mesh.morphTargetInfluences)return;
+  for(const [name,index] of Object.entries(mesh.morphTargetDictionary)){
+   if(!morphBindings.has(name))morphBindings.set(name,[]);
+   morphBindings.get(name).push({mesh,index});
+  }
+ });
+ const container=document.getElementById('morphControls');
+ [...morphBindings.entries()].slice(0,24).forEach(([name,bindings])=>{
+  const row=document.createElement('div');row.className='morph-control';
+  const label=document.createElement('label');label.textContent=MORPH_LABELS[name]||name;label.htmlFor=`morph-${container.children.length}`;
+  const input=document.createElement('input');input.type='range';input.min='0';input.max='1';input.step='.01';input.id=label.htmlFor;
+  const initial=Number(bindings[0].mesh.morphTargetInfluences[bindings[0].index]||0);
+  input.value=String(THREE.MathUtils.clamp(initial,0,1));
+  const output=document.createElement('output');output.value=Number(input.value).toFixed(2);
+  input.addEventListener('input',()=>{
+   const value=Number(input.value);
+   bindings.forEach(({mesh,index})=>{mesh.morphTargetInfluences[index]=value});
+   output.value=value.toFixed(2);
+  });
+  row.append(label,input,output);container.append(row);
+ });
+ document.getElementById('morphEditor').hidden=morphBindings.size===0;
+}
 function clearAvatarAnimations(){
  if(importedMixer&&importedAvatar)importedMixer.stopAllAction();
  importedMixer=null;
@@ -219,6 +259,7 @@ async function importAvatarAsset(file){
  disposeImportedAvatar();
  importedAvatar=normalizedRoot;
  importedRoot.add(normalizedRoot);
+ buildMorphControls(root);
  importedMixer=new THREE.AnimationMixer(root);
  importedActions=gltf.animations.map(clip=>importedMixer.clipAction(clip));
  animationSelect.replaceChildren(new Option('اختر الحركة',''));
@@ -232,6 +273,7 @@ async function importAvatarAsset(file){
 }
 function disposeImportedAvatar(){
  clearAvatarAnimations();
+ clearMorphControls();
  if(!importedAvatar)return;
  importedRoot.remove(importedAvatar);
  const disposedTextures=new Set();

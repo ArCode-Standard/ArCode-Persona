@@ -4,3 +4,5 @@
 .control-button{white-space:nowrap}.preview-controls{gap:8px}.view-actions{align-items:center;flex-wrap:wrap}
 
 #avatarAnimation{max-width:145px;padding:8px 9px;font-size:10px}#toggleAvatarAnimation:disabled{opacity:.5;cursor:not-allowed}.view-actions{min-width:0}
+
+.morph-editor[hidden]{display:none}.morph-control{display:grid;grid-template-columns:1fr minmax(90px,1.3fr) 38px;gap:8px;align-items:center;margin:10px 0}.morph-control label{font-size:11px;color:#d5ded6}.morph-control input{width:100%;accent-color:#a7c59b}.morph-control output{font:10px Manrope;color:#a9b7ae;text-align:left}

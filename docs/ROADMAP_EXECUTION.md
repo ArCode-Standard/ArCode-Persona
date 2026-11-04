@@ -12,7 +12,8 @@
 - [x] Establish a local GLB 2.0 import path with size, header, version, and external-resource checks.
 - [ ] Approve stylized visual direction and character proportions.
 - [ ] Create production base mesh and rig.
-- [ ] Implement facial blendshape system.
+- [x] Expose imported GLB facial morph targets through runtime sliders.
+- [ ] Implement facial expression presets and blendshape authoring tools.
 - [ ] Replace placeholder garments with researched modular Moroccan assets.
 - [x] Play and select animation clips embedded in imported GLB files.
 - [ ] Add a studio-wide animation state machine and gesture library.
