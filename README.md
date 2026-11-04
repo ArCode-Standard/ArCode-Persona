@@ -16,7 +16,7 @@
 
 The first design families are djellaba, caftan, takchita, contemporary Moroccan styling, and accessories such as babouches, fez, scarves, belts, jewelry, and eyewear. The catalog is research-first: regional and cultural references must be documented and reviewed. No single outfit is treated as representative of every Moroccan person.
 
-See [Moroccan Wardrobe Catalog](docs/MOROCCAN_WARDROBE_CATALOG.md).
+See [Moroccan Wardrobe Catalog](docs/MOROCCAN_WARDROBE_CATALOG.md) and the [Character JSON Design Schema](docs/CHARACTER_JSON_SCHEMA.md).
 
 ## Technology
 
