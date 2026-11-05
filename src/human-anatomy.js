@@ -98,6 +98,8 @@ function taperedLimb(parent, start, end, r0, r1, material, depth, rig, candidate
 }
 
 export function buildHumanAnatomy(parent, proportions = {}, skinMaterial, rig = null) {
+  parent.updateWorldMatrix(true, false);
+  if (rig?.root) rig.root.updateMatrixWorld(true);
   const p = solveHumanProportions(proportions);
   const l = p.landmarks;
   const sx = p.shoulderWidth, dx = p.bodyDepth, wx = p.waistWidth, hx = p.hipWidth, tl = p.torsoLength;
