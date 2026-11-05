@@ -2,7 +2,7 @@
 
 **ArCode Persona** is an independent avatar creation platform in the ArCode ecosystem. It is designed to let each person build a customizable digital persona while keeping identity data portable and under the user's control.
 
-> Current status: interactive prototype and engineering foundation. The current character is procedural placeholder geometry, not a production-quality rigged avatar.
+> Current status: interactive prototype with a weighted procedural humanoid blockout and procedural facial morph targets. Production sculpted topology, authored assets and animation-quality deformation remain in progress.
 
 ## Product direction
 
@@ -85,9 +85,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 ### Human anatomy, rig and color engine
 
 - `src/human-proportions.js`: shared proportion solver and anatomical landmarks for shoulder, elbow, wrist, pelvis, knee, ankle and foot placement.
-- `src/human-rig.js`: standardized humanoid bone hierarchy (hips, spine, chest, neck, head, clavicles, arms, hands, fingers, legs, feet and toes) for future animation and skin binding.
-- `src/human-anatomy.js`: lofted torso surface with smoother ribcage-to-waist-to-pelvis transitions, plus articulated limb blockout.
+- `src/human-rig.js`: standardized humanoid bone hierarchy aligned to body landmarks, including spine, neck, head, clavicles, arms, fingers, legs and feet.\n- `src/face-morphs.js`: procedural head and nose surfaces with named relative morph targets and normalized JSON v2 controls.
+- `src/human-anatomy.js`: lofted torso and articulated limbs, hands and feet; when passed the humanoid rig, every generated body part receives normalized two-bone skin weights and is bound as a `SkinnedMesh`.
 - `src/color-system.js`: Moroccan-inspired palettes and physically based skin/fabric material presets.
 - The face preview now has more deliberate jaw, cheek, ear and nose sub-shapes; all remain stylized procedural geometry.
 
-The bone hierarchy is currently animation-ready metadata, not yet a weighted SkinnedMesh. The preview anatomy remains a blockout; realistic anatomical topology, fingers, muscle definition and deformation require a dedicated production base mesh and skin weights.
+The procedural body is now weighted to the humanoid skeleton, and the head/nose use real Three.js morph-target deltas. The result remains a stylized blockout: production anatomical topology, sculpted muscle definition, deformation QA, calibrated facial shapes and finished garment assets still require dedicated art production.
