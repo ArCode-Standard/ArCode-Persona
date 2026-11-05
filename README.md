@@ -47,7 +47,9 @@ npm run preview
 | `test/` | Unit tests for the configuration contract |
 | `docs/TECHNICAL_ARCHITECTURE.md` | System boundaries and rendering architecture |
 | `docs/MOROCCAN_WARDROBE_CATALOG.md` | Moroccan clothing research and design direction |
-| `docs/AVATAR_ASSET_PIPELINE.md` | Production 3D asset authoring and validation pipeline |\n| `tools/blender/export_skinned_asset.py` | Blender GLB exporter with provenance manifest |\n| `tools/validate-avatar-glb.mjs` | GLB rig/morph/animation profile validator |
+| `docs/AVATAR_ASSET_PIPELINE.md` | Production 3D asset authoring and validation pipeline |
+| `tools/blender/export_skinned_asset.py` | Blender GLB exporter with provenance manifest |
+| `tools/validate-avatar-glb.mjs` | GLB rig/morph/animation profile validator |
 | `docs/PRIVACY_AND_SECURITY.md` | Data handling and future server security principles |
 | `docs/QUALITY_GATES.md` | CI and release acceptance criteria |
 | `docs/ROADMAP_EXECUTION.md` | Phased execution plan |
@@ -67,7 +69,8 @@ npm run preview
 - Semantic application of supported design properties to matching GLB morph targets and conventionally named skeleton bones.
 - Automatic local browser persistence with no account or server storage.
 - Restore saved looks after reloading the studio.
-- Responsive Arabic RTL interface.\n- Blender export helper and GLB production-profile validation for skinned avatars and garments.
+- Responsive Arabic RTL interface.
+- Blender export helper and GLB production-profile validation for skinned avatars and garments.
 
 ## Important limitations
 
@@ -85,7 +88,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 ### Human anatomy, rig and color engine
 
 - `src/human-proportions.js`: shared proportion solver and anatomical landmarks for shoulder, elbow, wrist, pelvis, knee, ankle and foot placement.
-- `src/human-rig.js`: standardized humanoid bone hierarchy aligned to body landmarks, including spine, neck, head, clavicles, arms, fingers, legs and feet.\n- `src/face-morphs.js`: procedural head and nose surfaces with named relative morph targets and normalized JSON v2 controls.
+- `src/human-rig.js`: standardized humanoid bone hierarchy aligned to body landmarks, including spine, neck, head, clavicles, arms, fingers, legs and feet.
+- `src/face-morphs.js`: procedural head and nose surfaces with named relative morph targets and normalized JSON v2 controls.
 - `src/human-anatomy.js`: lofted torso and articulated limbs, hands and feet; when passed the humanoid rig, every generated body part receives normalized two-bone skin weights and is bound as a `SkinnedMesh`.
 - `src/color-system.js`: Moroccan-inspired palettes and physically based skin/fabric material presets.
 - The face preview now has more deliberate jaw, cheek, ear and nose sub-shapes; all remain stylized procedural geometry.
