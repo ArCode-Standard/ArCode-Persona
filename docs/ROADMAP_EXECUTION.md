@@ -13,10 +13,12 @@
 - [x] Define versioned body, face, hair, and clothing proportion properties in JSON.
 - [x] Connect procedural geometry and compatible imported GLB morph/bone targets to design properties.
 - [ ] Approve stylized visual direction and character proportions.
-- [x] Implement a procedural skinned humanoid blockout with normalized two-bone weights and a stable rig contract.\n- [ ] Create and approve a production-quality sculpted base mesh and animation-ready production rig.
+- [x] Implement a procedural skinned humanoid blockout with normalized two-bone weights and a stable rig contract.
+- [ ] Create and approve a production-quality sculpted base mesh and animation-ready production rig.
 - [x] Expose imported GLB facial morph targets through runtime sliders.
 - [x] Add runtime facial expression presets for imported blendshape names.
-- [x] Add procedural face and nose morph targets for width, height, jaw, cheeks, chin, nose bridge, nose length and tip.\n- [ ] Build visual blendshape authoring and calibration tools.
+- [x] Add procedural face and nose morph targets for width, height, jaw, cheeks, chin, nose bridge, nose length and tip.
+- [ ] Build visual blendshape authoring and calibration tools.
 - [ ] Replace placeholder garments with researched modular Moroccan assets.
 - [x] Play and select animation clips embedded in imported GLB files.
 - [ ] Add a studio-wide animation state machine and gesture library.
@@ -25,7 +27,8 @@
 ## Phase 1A — Production asset pipeline
 - [x] Add a Blender export helper with mandatory provenance metadata.
 - [x] Add a GLB profile validator for skinned avatars and garments.
-- [x] Implement an initial procedural weighted rig and runtime facial shape keys.\n- [ ] Produce, license and visually QA a production human mesh, rig and authored facial shape keys.
+- [x] Implement an initial procedural weighted rig and runtime facial shape keys.
+- [ ] Produce, license and visually QA a production human mesh, rig and authored facial shape keys.
 - [ ] Produce modular djellaba, caftan, and takchita assets against the pinned rig.
 - [ ] Complete garment deformation and clipping QA on the base animation set.
 
