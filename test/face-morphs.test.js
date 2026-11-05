@@ -11,7 +11,7 @@ test('procedural face exposes named, finite facial morph targets', () => {
     assert.ok(Number.isFinite(mesh.morphTargetInfluences[mesh.morphTargetDictionary[name]]));
   }
   assert.equal(mesh.morphTargetInfluences[mesh.morphTargetDictionary.shapeHeart], 1);
-  assert.equal(mesh.morphTargetInfluences[mesh.morphTargetDictionary.jawWidth], -.1);
+  assert.ok(Math.abs(mesh.morphTargetInfluences[mesh.morphTargetDictionary.jawWidth] + .1) < 1e-9);
 });
 
 test('procedural nose exposes independent bridge, length, width and tip targets', () => {
