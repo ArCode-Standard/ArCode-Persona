@@ -20,4 +20,4 @@
 
 ## Current limitations
 
-The existing geometric model is not a rigged production avatar. Full skeletal animation, facial blendshapes, cloth simulation, authentic garment geometry, automated visual regression, and browser-level E2E tests remain planned work.
+The built-in procedural blockout now binds its generated body parts to a stable humanoid skeleton with normalized two-bone weights, and the procedural face/nose surfaces expose runtime morph targets. This is an engineering foundation, not a production-quality sculpted base mesh: production topology, animation deformation QA, authored facial shapes, cloth simulation, authentic garment geometry, automated visual regression, and browser-level E2E tests remain planned work.
