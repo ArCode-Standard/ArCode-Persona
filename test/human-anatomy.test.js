@@ -29,7 +29,7 @@ test('skinned anatomy binds every generated body part to normalized bone weights
   root.add(rig.root);
   const result = buildHumanAnatomy(root, body, new THREE.MeshStandardMaterial(), rig);
   const meshes = root.children.filter(child => child.isSkinnedMesh);
-  assert.ok(result.skeleton?.isSkeleton);
+  assert.ok(result.skeleton?.bones?.length > 0);
   assert.ok(meshes.length >= 20);
   for (const mesh of meshes) {
     const indices = mesh.geometry.getAttribute('skinIndex');
