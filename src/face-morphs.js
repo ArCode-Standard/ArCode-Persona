@@ -9,6 +9,8 @@ function addMorphTargets(geometry, definitions) {
   const base = geometry.getAttribute('position');
   geometry.morphTargetsRelative = true;
   geometry.morphAttributes.position = [];
+  geometry.morphAttributes.normal = [];
+  const baseNormals = geometry.getAttribute('normal');
   for (const [name, deltaForVertex] of Object.entries(definitions)) {
     const delta = new Float32Array(base.count * 3);
     const vertex = new THREE.Vector3();
@@ -22,7 +24,31 @@ function addMorphTargets(geometry, definitions) {
     const attribute = new THREE.Float32BufferAttribute(delta, 3);
     attribute.name = name;
     geometry.morphAttributes.position.push(attribute);
+
+    const deformedPositions = new Float32Array(base.array.length);
+    for (let i = 0; i < base.count; i++) {
+      deformedPositions[i * 3] = base.getX(i) + delta[i * 3];
+      deformedPositions[i * 3 + 1] = base.getY(i) + delta[i * 3 + 1];
+      deformedPositions[i * 3 + 2] = base.getZ(i) + delta[i * 3 + 2];
+    }
+    const deformed = geometry.clone();
+    deformed.morphAttributes = {};
+    deformed.setAttribute('position', new THREE.Float32BufferAttribute(deformedPositions, 3));
+    deformed.computeVertexNormals();
+    const changedNormals = deformed.getAttribute('normal');
+    const normalDelta = new Float32Array(baseNormals.count * 3);
+    for (let i = 0; i < baseNormals.count; i++) {
+      normalDelta[i * 3] = changedNormals.getX(i) - baseNormals.getX(i);
+      normalDelta[i * 3 + 1] = changedNormals.getY(i) - baseNormals.getY(i);
+      normalDelta[i * 3 + 2] = changedNormals.getZ(i) - baseNormals.getZ(i);
+    }
+    const normalAttribute = new THREE.Float32BufferAttribute(normalDelta, 3);
+    normalAttribute.name = name;
+    geometry.morphAttributes.normal.push(normalAttribute);
+    deformed.dispose();
   }
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
   return geometry;
 }
 
