@@ -95,7 +95,6 @@ function build(){
   sphere(torso,side*.59,-1.12*wardrobe.sleeveLength,.015,.17,.17,.22,clothMaterial);
  }
  const head=new THREE.Group();head.scale.set(body.headScale,body.headScale,body.headScale);humanoidRig.bones.Head.add(head);
- const shapeFactor={oval:[1,1],round:[1.08,.94],square:[1.04,.98],heart:[1,.98],long:[.94,1.08]}[face.shape];
  const jawFactor={oval:1,round:1.08,square:1.14,heart:.86,long:.94}[face.shape];
  head.add(createFaceSurface(face,skin));
  sphere(head,0,-.25,.055,.43*face.jawWidth*jawFactor,.34*face.height,.43,skin,48);
